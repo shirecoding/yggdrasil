@@ -1,0 +1,1 @@
+A simple chat game where NPCs represented as NFTs in the blockcain come alive. They are able to respond in a human-like manner using generative NLP models based on the content in their NFT.
