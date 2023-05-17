@@ -1,63 +1,44 @@
-mod player;
-
-use player::{
-    Player,
-    Gender
-};
+mod game;
+mod web;
 
 use dotenv::dotenv;
-use axum::{
-    routing::{get, post},
-    extract::Query,
-    http::StatusCode,
-    response::IntoResponse,
-    response::Html,
-    Json, Router
-};
-use serde::{Deserialize, Serialize};
-use std::{net::SocketAddr, str::FromStr, convert::Infallible, env};
-use tracing::{debug, info};
+
+use std::{net::SocketAddr, env};
+use tracing::{info};
+use tracing_subscriber::EnvFilter;
 use tokio;
-use axum;
+use std::thread;
+
 use tracing;
 use tracing_subscriber;
 
-use askama::Template;
-use std::collections::HashMap;
+fn setup() {
+    // load environment variables
+    dotenv().ok();
+
+    // initialize tracing
+    tracing_subscriber::fmt()
+        .with_env_filter(
+            EnvFilter::from_default_env()
+            .add_directive("bevy=info".parse().unwrap())
+        )
+        .init();
+    
+    let environment = env::var("RUST_LOG").unwrap();
+    info!("Log Level: {environment}");
+}
 
 #[tokio::main]
 async fn main() {
-    dotenv().ok();
-    let environment = env::var("RUST_LOG").unwrap();
-    println!("RUST_LOG: {}", environment);
+    
+    // setup
+    setup();
 
-    // initialize tracing
-    tracing_subscriber::fmt::init();
-
-    // build application with router
-    let app = Router::new()
-        .route("/", get(root))
-        .route("/random_player", get(random_player));
-
-    let addr = SocketAddr::from(([0, 0, 0, 0], 3000));
-    debug!("listening on {}", addr);
-    axum::Server::bind(&addr)
-        .serve(app.into_make_service())
-        .await
-        .unwrap();
-}
-
-#[derive(Template)]
-#[template(path = "yggdrasil.html")]
-struct WelcomeTemplate {}
-
-async fn root() -> Html<String> {
-    let template = WelcomeTemplate {};
-    Html(template.render().unwrap())
-}
-
-async fn random_player(Query(params): Query<HashMap<String, String>>) -> Result<Json<Player>, Infallible> {
-    info!("params: {:?}", &params);
-    // Ok(Json(Player::random(Gender::from_str(&gender).unwrap())))
-    Ok(Json(Player::random(Gender::male)))
+    // run game engine
+    let game_thread = thread::spawn(game::begin);
+    
+    // run web server
+    web::begin(SocketAddr::from(([0, 0, 0, 0], 3000))).await;
+    
+    game_thread.join().unwrap();
 }
