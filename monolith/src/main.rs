@@ -2,6 +2,7 @@ mod game;
 mod web;
 
 use dotenv::dotenv;
+use game::GameState;
 
 use std::{net::SocketAddr, env};
 use tracing::{info};
@@ -28,17 +29,22 @@ fn setup() {
     info!("Log Level: {environment}");
 }
 
+static mut game_state: game::GameState = game::GameState {name: "yggdrasil".to_owned()};
+
+
+
 #[tokio::main]
 async fn main() {
     
     // setup
     setup();
-
+    
     // run game engine
-    let game_thread = thread::spawn(game::begin);
+    // let game_state = game::GameState {name: "yggdrasil".to_owned()};
+    let game_thread = thread::spawn(|| game::begin(game_state));
     
     // run web server
-    web::begin(SocketAddr::from(([0, 0, 0, 0], 3000))).await;
+    web::begin(SocketAddr::from(([0, 0, 0, 0], 3000)), game_state).await;
     
     game_thread.join().unwrap();
 }

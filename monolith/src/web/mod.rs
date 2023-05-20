@@ -12,7 +12,9 @@ use std::{net::SocketAddr};
 use askama::Template;
 use tracing::{debug};
 
-pub async fn begin(socket_addr: SocketAddr) {
+use crate::game::GameState;
+
+pub async fn begin(socket_addr: SocketAddr, game_state: GameState) {
 
     // build application with router
     let app = Router::new()

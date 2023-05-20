@@ -7,6 +7,11 @@ use player::{PlayerBundle, Player, Name, Gender};
 #[derive(Resource)]
 struct GreetTimer(Timer);
 
+#[derive(Resource)]
+pub struct GameState {
+    pub name: String,
+}
+
 fn greet_players(
     time: Res<Time>,  // Time resource added as default by DefaultPlugins
     mut timer: ResMut<GreetTimer>,
@@ -33,7 +38,9 @@ fn start_up(mut commands: Commands) {
     }
 }
 
-pub fn begin () {
+
+
+pub fn begin (game_state: GameState) {
 
     App::new()
         // Minimal plugins for a headless server
@@ -42,6 +49,7 @@ pub fn begin () {
         .add_startup_system(start_up)
         // Initialize resources
         .insert_resource(GreetTimer(Timer::from_seconds(2.0, TimerMode::Repeating)))
+        .insert_resource(game_state)
         // Run systems in parallel
         .add_system(greet_players)
         .run();
