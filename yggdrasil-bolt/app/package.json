@@ -17,7 +17,7 @@
     "@types/react-dom": "^18.2.17",
     "@types/react-shadow-dom-retarget-events": "^1.0.2",
     "@webpack-cli/generators": "^3.0.7",
-    "bolt-sdk": "^0.0.2",
+    "bolt-sdk": "^0.0.3",
     "browserify-zlib": "^0.2.0",
     "copy-webpack-plugin": "^11.0.0",
     "crypto-browserify": "^3.12.0",

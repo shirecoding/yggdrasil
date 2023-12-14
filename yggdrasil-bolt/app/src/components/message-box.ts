@@ -14,6 +14,17 @@ export class MessageBox extends LitElement {
     }
   `;
 
+  addMessage(message) {
+    const item = document.createElement("chat-message");
+    item.innerHTML = message.body;
+    item.setAttribute(
+      "msgType",
+      message.author === "admin" ? "msg-receive" : "msg-send"
+    );
+    // Add it to the light DOM
+    this.appendChild(item);
+  }
+
   scrollToBottom() {
     this.messageList.scrollTop = this.messageList.scrollHeight;
   }

@@ -10,11 +10,16 @@ system-movement = "2wqzKNVghP29CWiXyiZ2ms6iz1KjdKHNUhpMNfAatfCn"
 yggdrasil_bolt = "HDJXRRzmN54gT8mUNw5wdj4YHpb8NmVudSttH5xFxFHf"
 
 [registry]
-url = "https://api.apr.dev"
+# url = "https://api.apr.dev"
+url = "http://localhost:8899"
 
 [provider]
 cluster = "Localnet"
-wallet = "/Users/benjaminhon/.config/solana/id.json"
+wallet = "/Users/benjaminhon/Developer/christmas/christmas/id_test.json"
 
 [scripts]
 test = "yarn run ts-mocha -p ./tsconfig.json -t 1000000 tests/**/*.ts"
+
+[[test.genesis]]
+address = "WorLD15A7CrDwLcLy4fRqtaTb9fbd8o8iqiEMUDse2n"
+program = "tests/fixtures/world.so"
