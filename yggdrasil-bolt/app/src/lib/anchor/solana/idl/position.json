@@ -1,0 +1,27 @@
+{
+  "version": "0.1.0",
+  "name": "position",
+  "instructions": [],
+  "accounts": [
+    {
+      "name": "Position",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "x",
+            "type": "i64"
+          },
+          {
+            "name": "y",
+            "type": "i64"
+          },
+          {
+            "name": "z",
+            "type": "i64"
+          }
+        ]
+      }
+    }
+  ]
+}
