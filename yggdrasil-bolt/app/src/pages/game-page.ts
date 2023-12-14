@@ -9,7 +9,6 @@ export class GamePage extends LitElement {
 
   onMessage(e: CustomEvent<Message>) {
     const { author, body } = e.detail;
-    console.log(body, author);
     this.messageBox.addMessage({
       body: body,
       author: author,

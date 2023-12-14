@@ -36,6 +36,8 @@ import "@polymer/app-layout/app-layout.js";
 // custom
 import "./layout/app-main";
 import "./pages/onboard-wallet-page";
+import "./pages/onboard-player-page";
 import "./pages/game-page";
+import "./components/form-event";
 import "./components/solana-wallet";
 import "./components/message-box";

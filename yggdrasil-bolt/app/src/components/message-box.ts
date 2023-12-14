@@ -21,8 +21,6 @@ export class MessageBox extends LitElement {
     .message-list {
       overflow-y: auto;
       height: 150px;
-      /* min-height: 200px; */
-      /* max-height: 300px; */
       border: 1px solid #ccc; /* Add styling as needed */
     }
   `;
@@ -44,29 +42,22 @@ export class MessageBox extends LitElement {
     this.messageList.scrollTop = this.messageList.scrollHeight;
   }
 
-  protected firstUpdated() {
-    // Emit on-message event
-    this.messageForm.addEventListener("submit", (e: FormDataEvent) => {
-      e.preventDefault(); // prevent refresh browser
-      new FormData(this.messageForm); // construct a FormData object, which fires the formdata event
-    });
-    this.messageForm.addEventListener("formdata", (e: FormDataEvent) => {
-      const parsed = Object.fromEntries(Array.from(e.formData.entries()));
-      // Dispatch on-create event
-      this.dispatchEvent(
-        new CustomEvent<Message>("on-message", {
-          bubbles: true,
-          composed: true,
-          detail: {
-            body: parsed.message.toString(),
-            author: "",
-          },
-        })
-      );
+  onMessage(e: CustomEvent) {
+    console.log(e);
+    // Dispatch on-message
+    this.dispatchEvent(
+      new CustomEvent<Message>("on-message", {
+        bubbles: true,
+        composed: true,
+        detail: {
+          body: e.detail.message.toString(),
+          author: "",
+        },
+      })
+    );
 
-      // Clear input
-      this.messageInput.value = "";
-    });
+    // Clear input
+    this.messageInput.value = "";
   }
 
   render() {
@@ -75,15 +66,17 @@ export class MessageBox extends LitElement {
         <slot></slot>
       </div>
       <br />
-      <form action="submit" id="message-form">
-        <sl-input name="message" size="large" id="message-input">
-          <sl-icon-button
-            type="submit"
-            name="chat"
-            slot="suffix"
-          ></sl-icon-button>
-        </sl-input>
-      </form>
+      <form-event @on-submit=${this.onMessage}>
+        <form action="submit" slot="form">
+          <sl-input name="message" size="large" id="message-input">
+            <sl-icon-button
+              type="submit"
+              name="chat"
+              slot="suffix"
+            ></sl-icon-button>
+          </sl-input>
+        </form>
+      </form-event>
     `;
   }
 }
