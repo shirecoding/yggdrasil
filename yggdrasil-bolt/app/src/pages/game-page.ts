@@ -17,24 +17,12 @@ export class GamePage extends LitElement {
 
   render() {
     return html`
-      <h1>Game Page</h1>
-
+      <onboard-player-page></onboard-player-page>
+      <!-- <h1>Game Page</h1>
       <message-box
         @on-message="${this.onMessage}"
         id="message-box"
-      ></message-box>
-
-      <!-- <sl-menu style="max-width: 200px;">
-        <sl-menu-label>Fruits</sl-menu-label>
-        <sl-menu-item value="apple">Apple</sl-menu-item>
-        <sl-menu-item value="banana">Banana</sl-menu-item>
-        <sl-menu-item value="orange">Orange</sl-menu-item>
-        <sl-divider></sl-divider>
-        <sl-menu-label>Vegetables</sl-menu-label>
-        <sl-menu-item value="broccoli">Broccoli</sl-menu-item>
-        <sl-menu-item value="carrot">Carrot</sl-menu-item>
-        <sl-menu-item value="zucchini">Zucchini</sl-menu-item>
-      </sl-menu> -->
+      ></message-box> -->
     `;
   }
 }
