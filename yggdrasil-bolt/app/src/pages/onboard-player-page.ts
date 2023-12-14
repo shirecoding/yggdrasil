@@ -1,5 +1,9 @@
 import { LitElement, html, css } from "lit";
 import { customElement, property, state, query } from "lit/decorators.js";
+import { consume } from "@lit/context";
+import { anchorClientContext } from "../layout/app-main";
+import { AnchorClient } from "../lib/anchor/anchorClient";
+import { WORLD_ID } from "../lib/anchor/constants";
 
 export interface CreateCharacter {
   name: string;
@@ -7,8 +11,16 @@ export interface CreateCharacter {
 
 @customElement("onboard-player-page")
 export class OnboardPlayerPage extends LitElement {
-  onCreateCharacter(e: CustomEvent<CreateCharacter>) {
+  @consume({ context: anchorClientContext, subscribe: true })
+  @state()
+  accessor anchorClient: AnchorClient | null = null;
+
+  async onCreateCharacter(e: CustomEvent<CreateCharacter>) {
     const { name } = e.detail;
+
+    if (this.anchorClient) {
+      await this.anchorClient.initializeNewWorld(WORLD_ID);
+    }
   }
 
   render() {

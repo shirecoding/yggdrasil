@@ -8,6 +8,18 @@ import {
   TransactionSignature,
   ParsedAccountData,
 } from "@solana/web3.js";
+import BN from "bn.js";
+
+import {
+  createAddEntityInstruction,
+  createInitializeComponentInstruction,
+  createInitializeNewWorldInstruction,
+  createInitializeRegistryInstruction,
+  FindComponentPda,
+  FindEntityPda,
+  FindWorldPda,
+  FindWorldRegistryPda,
+} from "bolt-sdk";
 
 import positionIdl from "./solana/idl/position.json";
 import systemMovementIdl from "./solana/idl/system_movement.json";
@@ -15,6 +27,16 @@ import yggdrasilIdl from "./solana/idl/yggdrasil_bolt.json";
 import { Position } from "./solana/types/position";
 import { SystemMovement } from "./solana/types/system_movement";
 import { YggdrasilBolt } from "./solana/types/yggdrasil_bolt";
+
+import { BOLT_PROGRAM_ADDRESS } from "./constants";
+
+// from bolt-sdk
+// export declare const PROGRAM_ADDRESS = "WorLD15A7CrDwLcLy4fRqtaTb9fbd8o8iqiEMUDse2n";
+// export declare const PROGRAM_ID: PublicKey;
+// export declare function FindWorldRegistryPda(programId?: PublicKey): PublicKey;
+// export declare function FindWorldPda(id: BN, programId?: PublicKey): PublicKey;
+// export declare function FindEntityPda(worldId: BN, entityId: BN, programId?: PublicKey): PublicKey;
+// export declare function FindComponentPda(componentProgramId: PublicKey, entity: PublicKey, componentId: string): PublicKey;
 
 import {
   TOKEN_PROGRAM_ID,
@@ -77,6 +99,43 @@ export class AnchorClient {
     );
   }
 
+  /*
+    Game Functions
+  */
+
+  async initializeNewWorld(worldId: number): Promise<TransactionResult> {
+    // Only need to be called once to instantiate the world
+
+    const registryPda = FindWorldRegistryPda();
+    const worldPda = FindWorldPda(new BN(worldId));
+
+    const initializeRegistryIx = createInitializeRegistryInstruction({
+      registry: registryPda,
+      payer: this.anchorWallet.publicKey,
+    });
+    await this.executeTransaction(new Transaction().add(initializeRegistryIx));
+
+    const initializeWorldIx = createInitializeNewWorldInstruction({
+      world: worldPda,
+      registry: registryPda,
+      payer: this.anchorWallet.publicKey,
+    });
+    const res = await this.executeTransaction(
+      new Transaction().add(initializeWorldIx)
+    );
+
+    console.log(`
+      Created World: ${worldId}
+      registryPda: ${registryPda}
+      worldPda: ${worldPda}
+    `);
+
+    return res;
+  }
+
+  /*
+    Utils
+  */
   async confirmTransaction(
     signature: string,
     commitment?: web3.Commitment
