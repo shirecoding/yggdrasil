@@ -14,24 +14,30 @@ export class MessageBox extends LitElement {
   @query("#message-form")
   accessor messageForm: any;
 
+  @query("#message-input")
+  accessor messageInput: any;
+
   static styles = css`
     .message-list {
       overflow-y: auto;
-      min-height: 200px;
-      max-height: 300px; /* Set a maximum height for the chat window, adjust as needed */
+      height: 150px;
+      /* min-height: 200px; */
+      /* max-height: 300px; */
       border: 1px solid #ccc; /* Add styling as needed */
     }
   `;
 
   addMessage(message: Message) {
     const item = document.createElement("chat-message");
-    item.innerHTML = message.body;
+    item.innerHTML = message.body + "<br/>";
     item.setAttribute(
       "msgType",
       message.author === "system" ? "msg-receive" : "msg-send"
     );
-    // Add it to the light DOM
     this.appendChild(item);
+
+    // Scroll to bottom
+    this.scrollToBottom();
   }
 
   scrollToBottom() {
@@ -39,17 +45,11 @@ export class MessageBox extends LitElement {
   }
 
   protected firstUpdated() {
-    // Scroll to bottom on mutation
-    this.messageList.addEventListener("sl-mutation", (event) => {
-      console.log("scroll to bottom");
-      this.scrollToBottom();
-    });
-
+    // Emit on-message event
     this.messageForm.addEventListener("submit", (e: FormDataEvent) => {
       e.preventDefault(); // prevent refresh browser
       new FormData(this.messageForm); // construct a FormData object, which fires the formdata event
     });
-
     this.messageForm.addEventListener("formdata", (e: FormDataEvent) => {
       const parsed = Object.fromEntries(Array.from(e.formData.entries()));
       // Dispatch on-create event
@@ -63,19 +63,20 @@ export class MessageBox extends LitElement {
           },
         })
       );
+
+      // Clear input
+      this.messageInput.value = "";
     });
   }
 
   render() {
     return html`
       <div class="message-list" id="message-list">
-        <sl-mutation-observer child-list>
-          <slot></slot>
-        </sl-mutation-observer>
+        <slot></slot>
       </div>
       <br />
       <form action="submit" id="message-form">
-        <sl-input name="message" size="large">
+        <sl-input name="message" size="large" id="message-input">
           <sl-icon-button
             type="submit"
             name="chat"
