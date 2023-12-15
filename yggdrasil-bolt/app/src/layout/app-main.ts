@@ -5,12 +5,16 @@ import { Router } from "@vaadin/router";
 import { provide } from "@lit/context";
 import { createContext } from "@lit/context";
 import { AnchorClient } from "../lib/anchor/anchorClient";
+import { NFTStorageClient } from "../lib/nftStorageClient";
 import { WalletDetail } from "../components/solana-wallet";
-import { PublicKey } from "@solana/web3.js";
+import { NFT_STORAGE_TOKEN } from "../lib/defs";
 
 // Providers
 export const anchorClientContext = createContext<AnchorClient | null>(
   Symbol("anchor-client")
+);
+export const nftStorageClientContext = createContext<NFTStorageClient | null>(
+  Symbol("nft-storage")
 );
 
 // App Main
@@ -20,6 +24,12 @@ export class AppMain extends LitElement {
   @provide({ context: anchorClientContext })
   @state()
   accessor anchorClient: AnchorClient | null = null;
+
+  @provide({ context: nftStorageClientContext })
+  @state()
+  accessor nftStorageClient: NFTStorageClient = new NFTStorageClient({
+    token: NFT_STORAGE_TOKEN,
+  });
 
   // Setup router
   firstUpdated() {

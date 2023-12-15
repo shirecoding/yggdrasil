@@ -29,7 +29,7 @@ import { Position } from "./solana/types/position";
 import { SystemMovement } from "./solana/types/system_movement";
 import { YggdrasilBolt } from "./solana/types/yggdrasil_bolt";
 
-import { WORLD_ID, PROGRAM_IDS } from "./constants";
+import { WORLD_ID, PROGRAM_IDS } from "./defs";
 
 // from bolt-sdk
 // export declare const PROGRAM_ADDRESS = "WorLD15A7CrDwLcLy4fRqtaTb9fbd8o8iqiEMUDse2n";
@@ -90,12 +90,12 @@ export class AnchorClient {
 
     if (process.env.ENVIRONMENT === "devnet") {
       this.cluster = "https://api.devnet.solana.com";
-    } else if (process.env.ENVIRONMENT === "localnet"){
+    } else if (process.env.ENVIRONMENT === "localnet") {
       this.cluster = "http://127.0.0.1:8899";
     } else if (process.env.ENVIRONMENT === "mainnet") {
       this.cluster = "https://api.mainnet-beta.solana.com";
     } else {
-      throw new Error(`Invalid ENVIRONMENT=${process.env.ENVIRONMENT}`)
+      throw new Error(`Invalid ENVIRONMENT=${process.env.ENVIRONMENT}`);
     }
     this.connection = new web3.Connection(this.cluster, "confirmed");
     console.log(`Connected to cluster: ${this.cluster}`);
@@ -170,7 +170,6 @@ export class AnchorClient {
   }
 
   async createPlayer(name: string, uri: string): Promise<TransactionResult> {
-
     const [pda, _] = this.getPlayerPda();
 
     const ix = await this.programs.yggdrasil.methods

@@ -1,12 +1,23 @@
 import { LitElement, html, css, PropertyValues } from "lit";
 import { customElement, property, state, query } from "lit/decorators.js";
 import { consume, provide, createContext } from "@lit/context";
-import { anchorClientContext } from "../layout/app-main";
+import {
+  anchorClientContext,
+  nftStorageClientContext,
+} from "../layout/app-main";
 import { AnchorClient, Player } from "../lib/anchor/anchorClient";
-import { WORLD_ID, DEFAULT_PORTRAITS } from "../lib/anchor/constants";
+import { WORLD_ID } from "../lib/anchor/defs";
+import { DEFAULT_PORTRAITS } from "../lib/defs";
+import { NFTStorageClient } from "../lib/nftStorageClient";
+import { nft_uri_to_url } from "../lib/utils";
+
+export interface PlayerInfo {
+  player: Player;
+  portrait: string;
+}
 
 // playerContext
-export const playerContext = createContext<Player | null>(Symbol("player"));
+export const playerContext = createContext<PlayerInfo | null>(Symbol("player"));
 
 @customElement("onboard-player-page")
 export class OnboardPlayerPage extends LitElement {
@@ -14,14 +25,18 @@ export class OnboardPlayerPage extends LitElement {
   @state()
   accessor anchorClient: AnchorClient | null = null;
 
+  @consume({ context: nftStorageClientContext, subscribe: true })
+  @state()
+  accessor nftStorageClient: NFTStorageClient | null = null;
+
   @provide({ context: playerContext })
   @state()
-  accessor player: Player | null = null;
+  accessor player: PlayerInfo | null = null;
 
-  async onCreateCharacter(e: CustomEvent<{ name: string }>) {
-    const { name } = e.detail;
+  async onCreateCharacter(e: CustomEvent<{ name: string; portrait: string }>) {
+    const { name, portrait } = e.detail;
 
-    if (this.anchorClient) {
+    if (this.anchorClient && this.nftStorageClient) {
       // // Try to create the world (might already be created and throw error)
       // try {
       //   await this.anchorClient.initializeWorld();
@@ -29,8 +44,17 @@ export class OnboardPlayerPage extends LitElement {
       //   console.log(`World already created: ${WORLD_ID}`);
       // }
 
+      // Create NFT Storage for portrait
+      const uri = await this.nftStorageClient.storeImageFromUrl({
+        name,
+        description: "",
+        imageUrl: portrait,
+      });
+
+      console.log(`Stored portrait at ${uri}`);
+
       // Create & fetch player
-      await this.anchorClient.createPlayer(name, "");
+      await this.anchorClient.createPlayer(name, uri);
       await this.fetchPlayer();
     }
   }
@@ -39,7 +63,15 @@ export class OnboardPlayerPage extends LitElement {
     if (this.anchorClient) {
       const player = await this.anchorClient.getPlayer();
       if (player) {
-        this.player = player;
+        // get portrait
+        const playerMetadata = await (
+          await fetch(nft_uri_to_url(player.uri))
+        ).json();
+        const portrait = nft_uri_to_url(playerMetadata.image);
+        this.player = {
+          player,
+          portrait,
+        };
       }
     }
   }
@@ -71,8 +103,11 @@ export class OnboardPlayerPage extends LitElement {
   `;
 
   getWelcomePlayer() {
+    const player = this.player!.player;
+    const portrait = this.player!.portrait;
     return html`
-      <h1>Welcome ${this.player!.name}</h1>
+      <h1>Welcome ${player.name}</h1>
+      <img src="${portrait}" class="portrait" />
       <sl-button type="submit" variant="primary">Enter Yggdrasil</sl-button>
     `;
   }
@@ -100,9 +135,9 @@ export class OnboardPlayerPage extends LitElement {
                 class="hidden portrait-input"
                 value="${imagePath}"
                 required
-              ></input>
+              />
               <label for="${imageId}">
-                <img src="${imagePath}" alt="${imageId}" class="portrait"></img>
+                <img src="${imagePath}" alt="${imageId}" class="portrait" />
               </label>
             `;
           })}
