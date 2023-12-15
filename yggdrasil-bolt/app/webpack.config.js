@@ -4,7 +4,6 @@ const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 const webpack = require("webpack");
 
 module.exports = (env) => {
-
   return {
     entry: "./src/index.ts",
     module: {
@@ -29,7 +28,7 @@ module.exports = (env) => {
         process: {
           env: {
             ANCHOR_BROWSER: JSON.stringify(true),
-            ENVIRONMENT: JSON.stringify(env.ENVIRONMENT)
+            ENVIRONMENT: JSON.stringify(env.ENVIRONMENT),
           },
         },
       }),
@@ -43,6 +42,11 @@ module.exports = (env) => {
               "node_modules/@shoelace-style/shoelace/dist/assets"
             ),
             to: path.resolve(__dirname, "dist/shoelace/assets"),
+          },
+          // Copy assets
+          {
+            from: path.resolve(__dirname, "src/assets"),
+            to: path.resolve(__dirname, "dist/assets"),
           },
           // Copy index.html
           {
@@ -78,5 +82,5 @@ module.exports = (env) => {
         rewrites: [{ from: /^\/(.*)$/, to: "/index.html" }],
       },
     },
-  }
-}
+  };
+};
