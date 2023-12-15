@@ -51,7 +51,6 @@ module.exports = {
   resolve: {
     extensions: [".tsx", ".ts", ".js", ".json"],
     fallback: {
-      assert: require.resolve("assert/"),
       zlib: require.resolve("browserify-zlib"),
       https: require.resolve("https-browserify"),
       http: require.resolve("stream-http"),
