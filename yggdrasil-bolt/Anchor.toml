@@ -4,27 +4,31 @@
 seeds = false
 skip-lint = false
 
-[programs.localnet]
-position = "88zwmz5tVV1TNtHEKJzDgALKU3kyFCPAsP2RdRJ4pqzZ"
-system-movement = "2wqzKNVghP29CWiXyiZ2ms6iz1KjdKHNUhpMNfAatfCn"
-yggdrasil_bolt = "HDJXRRzmN54gT8mUNw5wdj4YHpb8NmVudSttH5xFxFHf"
-
 [programs.devnet]
-position = "88zwmz5tVV1TNtHEKJzDgALKU3kyFCPAsP2RdRJ4pqzZ"
-system-movement = "2wqzKNVghP29CWiXyiZ2ms6iz1KjdKHNUhpMNfAatfCn"
-yggdrasil_bolt = "HDJXRRzmN54gT8mUNw5wdj4YHpb8NmVudSttH5xFxFHf"
+entity = "FYUZaYADeoXV5MeMmro1jzJg7LMs7ruG3PtBwgT5V5Fx"
+source-perform-action-on-target-using = "9NEta1kQAHsxSBnfjEpC9wfaDwpAVgt3pdnnDWhwAird"
+yggdrasil_bolt = "9JBtwqvWsuEKUpswiR6vERUXnmcSGVXWUfsr7N8RQQTk"
+
+[programs.localnet]
+entity = "FYUZaYADeoXV5MeMmro1jzJg7LMs7ruG3PtBwgT5V5Fx"
+position = "B6ZpMqEYFiBfUc98Z6FsA87RCrVhTEGEbzcAfVzZuffP"
+source-perform-action-on-target-using = "9NEta1kQAHsxSBnfjEpC9wfaDwpAVgt3pdnnDWhwAird"
+yggdrasil_bolt = "9JBtwqvWsuEKUpswiR6vERUXnmcSGVXWUfsr7N8RQQTk"
 
 [registry]
-# url = "https://api.apr.dev"
 url = "http://localhost:8899"
 
 [provider]
-# cluster = "devnet"
-cluster = "localnet"
+cluster = "Localnet"
 wallet = "/Users/benjaminhon/.config/solana/id.json"
 
 [scripts]
 test = "yarn run ts-mocha -p ./tsconfig.json -t 1000000 tests/**/*.ts"
+
+[test]
+startup_wait = 5000
+shutdown_wait = 2000
+upgradeable = false
 
 [[test.genesis]]
 address = "WorLD15A7CrDwLcLy4fRqtaTb9fbd8o8iqiEMUDse2n"

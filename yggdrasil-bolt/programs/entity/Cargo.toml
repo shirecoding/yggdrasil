@@ -1,12 +1,12 @@
 [package]
-name = "system-movement"
+name = "entity"
 version = "0.1.0"
 description = "Created with Bolt"
 edition = "2021"
 
 [lib]
 crate-type = ["cdylib", "lib"]
-name = "system_movement"
+name = "entity"
 
 [features]
 no-entrypoint = []

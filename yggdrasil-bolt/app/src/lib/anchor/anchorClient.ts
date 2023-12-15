@@ -53,13 +53,18 @@ declare global {
   }
 }
 
+export interface Player {
+  name: string;
+  uri: string;
+  bump: number;
+}
+
 export interface TransactionResult {
   result: SignatureResult;
   signature: TransactionSignature;
 }
 
 export interface Programs {
-  position: anchor.Program<Position>;
   yggdrasil: anchor.Program<YggdrasilBolt>;
 }
 
@@ -102,11 +107,6 @@ export class AnchorClient {
     );
 
     this.programs = {
-      position: new anchor.Program<Position>(
-        positionIdl as any,
-        PROGRAM_IDS[process.env.ENVIRONMENT].position,
-        this.provider
-      ),
       yggdrasil: new anchor.Program<YggdrasilBolt>(
         yggdrasilIdl as any,
         PROGRAM_IDS[process.env.ENVIRONMENT].yggdrasil,
@@ -148,38 +148,76 @@ export class AnchorClient {
     );
   }
 
-  async createPlayer(): Promise<TransactionResult> {
-    const worldId = new BN(WORLD_ID);
-    const worldPda = FindWorldPda(worldId);
-
-    const entityId = getRandomBN(64); // TODO: NEED TO KEEP TRACK TO NOT SELECT AN ID ALREADY USED
-    const entityPda = FindEntityPda(worldId, entityId);
-
-    // Create player entity
-    let createEntityIx = createAddEntityInstruction({
-      world: worldPda,
-      payer: this.anchorWallet.publicKey,
-      entity: entityPda,
-    });
-    await this.executeTransaction(new Transaction().add(createEntityIx));
-
-    console.log(`Created player entityPda: ${entityPda}`);
-
-    // Create & attach position component
-    let positionDataPda = FindComponentPda(
-      this.programs.position.programId,
-      entityPda,
-      "position"
+  getPlayerPda(wallet?: web3.PublicKey): [web3.PublicKey, number] {
+    return web3.PublicKey.findProgramAddressSync(
+      [
+        anchor.utils.bytes.utf8.encode("player"),
+        wallet !== undefined
+          ? wallet.toBuffer()
+          : this.anchorWallet.publicKey.toBuffer(),
+      ],
+      this.programs.yggdrasil.programId
     );
-    let initComponentIx = createInitializeComponentInstruction({
-      payer: this.anchorWallet.publicKey,
-      entity: entityPda,
-      data: positionDataPda,
-      componentProgram: this.programs.position.programId,
-    });
-    return await this.executeTransaction(
-      new Transaction().add(initComponentIx)
-    );
+  }
+
+  async getPlayer(): Promise<Player | null> {
+    const [pda, _] = this.getPlayerPda();
+    try {
+      return await this.programs.yggdrasil.account.player.fetch(pda);
+    } catch (error) {
+      return null;
+    }
+  }
+
+  async createPlayer(name: string, uri: string): Promise<TransactionResult> {
+
+    const [pda, _] = this.getPlayerPda();
+
+    const ix = await this.programs.yggdrasil.methods
+      .createPlayer(name, uri)
+      .accounts({
+        player: pda,
+        signer: this.anchorWallet.publicKey,
+        systemProgram: web3.SystemProgram.programId,
+      })
+      .instruction();
+
+    const tx = new Transaction();
+    tx.add(ix);
+
+    return await this.executeTransaction(tx);
+
+    // const worldId = new BN(WORLD_ID);
+    // const worldPda = FindWorldPda(worldId);
+
+    // const entityId = getRandomBN(64); // TODO: NEED TO KEEP TRACK TO NOT SELECT AN ID ALREADY USED
+    // const entityPda = FindEntityPda(worldId, entityId);
+
+    // // Create player entity
+    // let createEntityIx = createAddEntityInstruction({
+    //   world: worldPda,
+    //   payer: this.anchorWallet.publicKey,
+    //   entity: entityPda,
+    // });
+    // await this.executeTransaction(new Transaction().add(createEntityIx));
+
+    // console.log(`Created player entityPda: ${entityPda}`);
+
+    // // Create & attach position component
+    // let positionDataPda = FindComponentPda(
+    //   this.programs.position.programId,
+    //   entityPda,
+    //   "position"
+    // );
+    // let initComponentIx = createInitializeComponentInstruction({
+    //   payer: this.anchorWallet.publicKey,
+    //   entity: entityPda,
+    //   data: positionDataPda,
+    //   componentProgram: this.programs.position.programId,
+    // });
+    // return await this.executeTransaction(
+    //   new Transaction().add(initComponentIx)
+    // );
   }
 
   /*
