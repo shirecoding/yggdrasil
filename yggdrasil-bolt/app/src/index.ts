@@ -30,6 +30,9 @@ import "@shoelace-style/shoelace/dist/components/mutation-observer/mutation-obse
 import { setBasePath } from "@shoelace-style/shoelace/dist/utilities/base-path.js";
 setBasePath("shoelace");
 
+// some libraries like BN.js require this
+window.Buffer = window.Buffer || require("buffer").Buffer;
+
 // app-layout
 import "@polymer/app-layout/app-layout.js";
 

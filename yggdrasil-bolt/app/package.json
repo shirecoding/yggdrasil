@@ -11,6 +11,9 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
+    "@metaplex-foundation/beet": "^0.7.1",
+    "@metaplex-foundation/beet-solana": "^0.4.0",
+    "@types/bn.js": "^5.1.5",
     "@types/lodash": "^4.14.202",
     "@types/ngeohash": "^0.6.8",
     "@types/react": "^18.2.42",
