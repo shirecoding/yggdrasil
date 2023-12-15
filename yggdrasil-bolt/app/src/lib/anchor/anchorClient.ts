@@ -29,7 +29,7 @@ import { Position } from "./solana/types/position";
 import { SystemMovement } from "./solana/types/system_movement";
 import { YggdrasilBolt } from "./solana/types/yggdrasil_bolt";
 
-import { WORLD_ID } from "./constants";
+import { WORLD_ID, PROGRAM_IDS } from "./constants";
 
 // from bolt-sdk
 // export declare const PROGRAM_ADDRESS = "WorLD15A7CrDwLcLy4fRqtaTb9fbd8o8iqiEMUDse2n";
@@ -64,7 +64,6 @@ export interface Programs {
 }
 
 export class AnchorClient {
-  programId: web3.PublicKey;
   cluster: string;
   connection: web3.Connection;
   provider: anchor.Provider;
@@ -73,40 +72,44 @@ export class AnchorClient {
   wallet: Wallet; // The Wallet from useWallet has more functionality, but can't be used to set up the AnchorProvider
 
   constructor({
-    programId,
     cluster,
     anchorWallet,
     wallet,
   }: {
     anchorWallet: AnchorWallet;
     wallet: Wallet;
-    programId: web3.PublicKey;
     cluster?: string;
   }) {
     this.anchorWallet = anchorWallet;
     this.wallet = wallet;
-    this.programId = programId;
-    this.cluster = cluster || "http://127.0.0.1:8899";
-    this.connection = new web3.Connection(this.cluster, "confirmed");
 
-    console.log(
-      `Connected to cluster: ${this.cluster} program: ${this.programId}`
-    );
+    if (process.env.ENVIRONMENT === "devnet") {
+      this.cluster = "https://api.devnet.solana.com";
+    } else if (process.env.ENVIRONMENT === "localnet"){
+      this.cluster = "http://127.0.0.1:8899";
+    } else if (process.env.ENVIRONMENT === "mainnet") {
+      this.cluster = "https://api.mainnet-beta.solana.com";
+    } else {
+      throw new Error(`Invalid ENVIRONMENT=${process.env.ENVIRONMENT}`)
+    }
+    this.connection = new web3.Connection(this.cluster, "confirmed");
+    console.log(`Connected to cluster: ${this.cluster}`);
 
     this.provider = new anchor.AnchorProvider(
       this.connection,
       this.anchorWallet,
       anchor.AnchorProvider.defaultOptions()
     );
+
     this.programs = {
-      yggdrasil: new anchor.Program<YggdrasilBolt>(
-        yggdrasilIdl as any,
-        this.programId,
-        this.provider
-      ),
       position: new anchor.Program<Position>(
         positionIdl as any,
-        this.programId,
+        PROGRAM_IDS[process.env.ENVIRONMENT].position,
+        this.provider
+      ),
+      yggdrasil: new anchor.Program<YggdrasilBolt>(
+        yggdrasilIdl as any,
+        PROGRAM_IDS[process.env.ENVIRONMENT].yggdrasil,
         this.provider
       ),
     };

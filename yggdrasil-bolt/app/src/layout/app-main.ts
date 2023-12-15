@@ -6,7 +6,6 @@ import { provide } from "@lit/context";
 import { createContext } from "@lit/context";
 import { AnchorClient } from "../lib/anchor/anchorClient";
 import { WalletDetail } from "../components/solana-wallet";
-import { PROGRAM_ID } from "../lib/anchor/constants";
 import { PublicKey } from "@solana/web3.js";
 
 // Providers
@@ -38,7 +37,6 @@ export class AppMain extends LitElement {
       this.anchorClient = new AnchorClient({
         wallet: wallet,
         anchorWallet: anchorWallet,
-        programId: new PublicKey(PROGRAM_ID),
       });
       console.log(
         `app-main::onConnectWallet:: ${e.detail.anchorWallet.publicKey}`
