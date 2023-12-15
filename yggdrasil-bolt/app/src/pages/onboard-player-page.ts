@@ -3,7 +3,7 @@ import { customElement, property, state, query } from "lit/decorators.js";
 import { consume, provide, createContext } from "@lit/context";
 import { anchorClientContext } from "../layout/app-main";
 import { AnchorClient, Player } from "../lib/anchor/anchorClient";
-import { WORLD_ID } from "../lib/anchor/constants";
+import { WORLD_ID, DEFAULT_PORTRAITS } from "../lib/anchor/constants";
 
 // playerContext
 export const playerContext = createContext<Player | null>(Symbol("player"));
@@ -54,6 +54,22 @@ export class OnboardPlayerPage extends LitElement {
     }
   }
 
+  static styles = css`
+    .hidden {
+      display: none;
+    }
+    .portrait {
+      height: 150px;
+      padding: 5px;
+    }
+    .portrait:hover {
+      outline: 2px solid #3498db;
+    }
+    .portrait-input:checked + label img {
+      outline: 2px solid #e74c3c;
+    }
+  `;
+
   getWelcomePlayer() {
     return html`
       <h1>Welcome ${this.player!.name}</h1>
@@ -66,6 +82,7 @@ export class OnboardPlayerPage extends LitElement {
       <h1>Create your character</h1>
       <form-event @on-submit=${this.onCreateCharacter}>
         <form action="submit" slot="form">
+          <!-- Name -->
           <sl-input
             label="Name"
             name="name"
@@ -73,7 +90,24 @@ export class OnboardPlayerPage extends LitElement {
             required
           ></sl-input>
           <br />
-          <sl-button type="submit" variant="primary">Enter world</sl-button>
+          <!-- Portrait -->
+          ${Object.entries(DEFAULT_PORTRAITS).map(([imageId, imagePath]) => {
+            return html`
+              <input
+                type="radio"
+                name="portrait"
+                id="${imageId}"
+                class="hidden portrait-input"
+                value="${imagePath}"
+                required
+              ></input>
+              <label for="${imageId}">
+                <img src="${imagePath}" alt="${imageId}" class="portrait"></img>
+              </label>
+            `;
+          })}
+          <br />
+          <sl-button type="submit" variant="primary">Enter Yggdrasil</sl-button>
         </form>
       </form-event>
     `;
