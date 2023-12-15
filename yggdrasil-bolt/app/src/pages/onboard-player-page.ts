@@ -19,7 +19,14 @@ export class OnboardPlayerPage extends LitElement {
     const { name } = e.detail;
 
     if (this.anchorClient) {
-      await this.anchorClient.initializeNewWorld(WORLD_ID);
+      // Try to create the world (might already be created and throw error)
+      try {
+        await this.anchorClient.initializeWorld();
+      } catch (error) {
+        console.log(`World already created: ${WORLD_ID}`);
+      }
+      // Create player
+      await this.anchorClient.createPlayer();
     }
   }
 
