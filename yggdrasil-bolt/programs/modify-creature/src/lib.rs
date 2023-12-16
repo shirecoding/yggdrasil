@@ -1,5 +1,6 @@
 use bolt_lang::*;
 use creature::Creature;
+use std::str::FromStr;
 
 declare_id!("42Pm1FeYouSPvTmHsJKkqZcQbhhxhGZCQSnvJQM9TkiE");
 
@@ -9,11 +10,21 @@ pub mod modify_creature {
     use super::*;
 
     pub fn execute(ctx: Context<Component>, args: Vec<u8>) -> Result<Creature> {
-        match parse_args::<Args>(&args).modification {
+        let parsed_args = parse_args::<Args>(&args);
+        match parsed_args.modification {
             Modification::Initialize => {
+                assert!(
+                    ctx.accounts.creature.is_initialized == false,
+                    "Create has already been intialized"
+                );
+
+                let authority = Pubkey::from_str(parsed_args.authority.as_str())
+                    .map_err(|err| ProgramError::Custom(err as u32))?;
+
                 // status
-                // creature.authority = '';
+                ctx.accounts.creature.authority = authority;
                 ctx.accounts.creature.logged_in = true;
+                ctx.accounts.creature.is_initialized = true;
                 ctx.accounts.creature.category = 0; // 0: player 1: npc
 
                 // location
@@ -44,11 +55,14 @@ pub mod modify_creature {
 pub struct Component<'info> {
     #[account()]
     pub creature: Account<'info, Creature>,
+    // #[account(mut)]
+    // pub signer: Signer<'info>,
 }
 
 #[derive(BoltSerialize, BoltDeserialize)]
 struct Args {
     modification: Modification,
+    authority: String,
 }
 
 #[derive(BoltSerialize, BoltDeserialize)]

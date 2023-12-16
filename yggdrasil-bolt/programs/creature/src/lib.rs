@@ -12,8 +12,9 @@ pub mod creature {
 #[bolt_account(component_id = "creature")]
 pub struct Creature {
     // meta
-    pub authority: Pubkey, // the player wallet
+    pub authority: Pubkey, // eg. player wallet or yggdrasil for npc
     pub logged_in: bool,
+    pub is_initialized: bool,
     // type
     pub category: u8, // 0: player, 1: npc
     // location

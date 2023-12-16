@@ -10,6 +10,8 @@ import {
   createInitializeNewWorldInstruction,
   createInitializeRegistryInstruction,
   createApplyInstruction,
+  createApply2Instruction,
+  createApply3Instruction,
   FindComponentPda,
   FindEntityPda,
   FindWorldPda,
@@ -24,6 +26,10 @@ import worldIdl from "./fixtures/world.json";
 
 enum Modification {
   Initialize = "Initialize",
+}
+
+enum Action {
+  Damage = "Damage",
 }
 
 function serializeArgs(args: any = {}) {
@@ -185,6 +191,7 @@ describe("yggdrasil-bolt", () => {
   it("Modify component", async () => {
     const args = {
       modification: Modification.Initialize,
+      authority: provider.wallet.publicKey.toString(),
     };
 
     let ix = createApplyInstruction(
@@ -197,7 +204,7 @@ describe("yggdrasil-bolt", () => {
     );
 
     const tx = new anchor.web3.Transaction().add(ix);
-    await provider.sendAndConfirm(tx, [], { skipPreflight: true });
+    await provider.sendAndConfirm(tx);
 
     const sourceCreateData = await programs.creature.account.creature.fetch(
       sourceCreatureComponentPda
@@ -208,6 +215,43 @@ describe("yggdrasil-bolt", () => {
     expect(sourceCreateData.level).to.equal(1);
     expect(sourceCreateData.maxHp).to.equal(10);
     expect(sourceCreateData.loggedIn).to.equal(true);
+    expect(sourceCreateData.isInitialized).to.equal(true);
     expect(sourceCreateData.category).to.equal(0);
+    expect(sourceCreateData.authority.toString()).to.equal(
+      provider.wallet.publicKey.toString()
+    );
   });
+
+  // it("Perform action", async () => {
+  //   const args = {
+  //     action: Action.Damage,
+  //   };
+
+  //   let ix = createApply3Instruction(
+  //     {
+  //       componentProgram1: programs.creature.programId,
+  //       componentProgram2: programs.creature.programId,
+  //       componentProgram3: programs.creature.programId,
+  //       boltComponent1: sourceCreatureComponentPda,
+  //       boltComponent2: targetCreatureComponentPda,
+  //       boltComponent3: sourceCreatureComponentPda,
+  //       boltSystem: programs.sourcePerformActionOnTargetUsing.programId,
+  //     },
+  //     { args: serializeArgs(args) }
+  //   );
+
+  //   const tx = new anchor.web3.Transaction().add(ix);
+  //   await provider.sendAndConfirm(tx, [], { skipPreflight: true });
+
+  //   const sourceCreateData = await programs.creature.account.creature.fetch(
+  //     sourceCreatureComponentPda
+  //   );
+
+  //   expect(sourceCreateData.maxHp).to.equal(10);
+  //   expect(sourceCreateData.hp).to.equal(10);
+  //   expect(sourceCreateData.level).to.equal(1);
+  //   expect(sourceCreateData.maxHp).to.equal(10);
+  //   expect(sourceCreateData.loggedIn).to.equal(true);
+  //   expect(sourceCreateData.category).to.equal(0);
+  // });
 });
