@@ -247,10 +247,10 @@ bn.js@^5.1.2, bn.js@^5.2.0, bn.js@^5.2.1:
   resolved "https://registry.npmjs.org/bn.js/-/bn.js-5.2.1.tgz"
   integrity sha512-eXRvHzWyYPBuB4NBy0cmYQjGitUrtqwbvlzP3G6VFnNRbsZQIxQ10PbKKHt8gZ/HW/D/747aDl+QkDqg3KQLMQ==
 
-bolt-sdk@^0.0.3:
-  version "0.0.3"
-  resolved "https://registry.npmjs.org/bolt-sdk/-/bolt-sdk-0.0.3.tgz"
-  integrity sha512-V552f1viZ8N+xstACUgSHNU0uePOZgjROp5yzi2aOQRDRefvKJNLFmqBPmQbEGELM5N4YeX0OK/7zQLgfB7Ygg==
+bolt-sdk@^0.0.8:
+  version "0.0.8"
+  resolved "https://registry.npmjs.org/bolt-sdk/-/bolt-sdk-0.0.8.tgz"
+  integrity sha512-w5p8/mGJlI3kaZVGEs2DsX7S2Wibyf9xjI3AhgR6kZcNc7f25ZJn8H807RFaum3nyR3c4EPz3XWgeuy8565v0A==
 
 borsh@^0.7.0:
   version "0.7.0"

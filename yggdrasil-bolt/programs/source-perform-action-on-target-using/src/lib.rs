@@ -1,5 +1,5 @@
 use bolt_lang::*;
-use entity::Entity;
+use creature::Creature;
 
 declare_id!("9NEta1kQAHsxSBnfjEpC9wfaDwpAVgt3pdnnDWhwAird");
 
@@ -8,7 +8,10 @@ declare_id!("9NEta1kQAHsxSBnfjEpC9wfaDwpAVgt3pdnnDWhwAird");
 pub mod source_perform_action_on_target_using {
     use super::*;
 
-    pub fn execute(ctx: Context<Component>, args: Vec<u8>) -> Result<(Entity, Entity, Entity)> {
+    pub fn execute(
+        ctx: Context<Component>,
+        args: Vec<u8>,
+    ) -> Result<(Creature, Creature, Creature)> {
         let target = &mut ctx.accounts.target;
         let using = &ctx.accounts.using;
 
@@ -18,7 +21,7 @@ pub mod source_perform_action_on_target_using {
                 target.hp -= damage as u16;
                 if target.hp <= 0 {
                     target.hp = 0;
-                    target.entity_state = 1;
+                    target.state = 1;
                 }
             }
         }
@@ -35,9 +38,9 @@ pub mod source_perform_action_on_target_using {
 #[derive(Accounts)]
 pub struct Component<'info> {
     /// CHECK: check that the component is the expected account
-    pub source: Account<'info, Entity>,
-    pub target: Account<'info, Entity>,
-    pub using: Account<'info, Entity>,
+    pub source: Account<'info, Creature>,
+    pub target: Account<'info, Creature>,
+    pub using: Account<'info, Creature>,
 }
 
 #[derive(BoltSerialize, BoltDeserialize)]

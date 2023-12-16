@@ -108,6 +108,7 @@ export class OnboardPlayerPage extends LitElement {
     return html`
       <h1>Welcome ${player.name}</h1>
       <img src="${portrait}" class="portrait" />
+      <br />
       <sl-button type="submit" variant="primary">Enter Yggdrasil</sl-button>
     `;
   }

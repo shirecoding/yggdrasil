@@ -1,8 +1,7 @@
 import * as anchor from "@coral-xyz/anchor";
 import { Program } from "@coral-xyz/anchor";
 import { YggdrasilBolt } from "../target/types/yggdrasil_bolt";
-import { Entity } from "../target/types/entity";
-import { Position } from "../target/types/position";
+import { Creature } from "../target/types/creature";
 import { SourcePerformActionOnTargetUsing } from "../target/types/source_perform_action_on_target_using";
 import {
   createAddEntityInstruction,
@@ -13,20 +12,30 @@ import {
   FindEntityPda,
   FindWorldPda,
   FindWorldRegistryPda,
+  World,
 } from "bolt-sdk";
 import { PublicKey } from "@solana/web3.js";
 import BN from "bn.js";
+
+import worldIdl from "./fixtures/world.json";
 
 describe("yggdrasil-bolt", () => {
   // Configure the client to use the local cluster.
   const provider = anchor.AnchorProvider.env();
   anchor.setProvider(provider);
 
+  // do this or use World.fromAccountAddress
+  const worldProgram = new Program(
+    worldIdl,
+    "WorLD15A7CrDwLcLy4fRqtaTb9fbd8o8iqiEMUDse2n",
+    provider
+  );
+
   // Programs
   const programs = {
     yggdrasil: anchor.workspace.YggdrasilBolt as Program<YggdrasilBolt>,
-    position: anchor.workspace.Position as Program<Position>,
-    entity: anchor.workspace.Entity as Program<Entity>,
+    creature: anchor.workspace.Creature as Program<Creature>,
+    world: worldProgram,
     sourcePerformActionOnTargetUsing: anchor.workspace
       .SourcePerformActionOnTargetUsing as Program<SourcePerformActionOnTargetUsing>,
   };
@@ -36,9 +45,9 @@ describe("yggdrasil-bolt", () => {
   const registryPda = FindWorldRegistryPda();
   const worldPda = FindWorldPda(worldId);
 
-  let sourceEntity: PublicKey;
-  let targetEntity: PublicKey;
-  let usingEntity: PublicKey;
+  let sourceCreature: PublicKey;
+  let targetCreature: PublicKey;
+  let usingCreature: PublicKey;
 
   it("Is initialized!", async () => {
     // Add your test here.
@@ -67,84 +76,84 @@ describe("yggdrasil-bolt", () => {
   });
 
   it("Create entities and corresponding components", async () => {
-    sourceEntity = FindEntityPda(worldId, new BN(0));
-    targetEntity = FindEntityPda(worldId, new BN(1));
-    usingEntity = FindEntityPda(worldId, new BN(2));
+    // get world entity counter
+    let entityCount = (
+      await World.fromAccountAddress(provider.connection, worldPda)
+    ).entities;
+    sourceCreature = FindEntityPda(worldId, entityCount);
+    targetCreature = FindEntityPda(worldId, entityCount.add(new BN(1)));
+    usingCreature = FindEntityPda(worldId, entityCount.add(new BN(2)));
+
     const tx = new anchor.web3.Transaction();
+
     tx.add(
       createAddEntityInstruction({
         world: worldPda,
         payer: provider.wallet.publicKey,
-        entity: sourceEntity,
+        entity: sourceCreature,
       })
     );
     tx.add(
       createAddEntityInstruction({
         world: worldPda,
         payer: provider.wallet.publicKey,
-        entity: targetEntity,
+        entity: targetCreature,
       })
     );
     tx.add(
       createAddEntityInstruction({
         world: worldPda,
         payer: provider.wallet.publicKey,
-        entity: usingEntity,
+        entity: usingCreature,
       })
     );
+
     await provider.sendAndConfirm(tx);
   });
 
   it("Attach components to entities", async () => {
-    let sourceEntityComponentPda = FindComponentPda(
-      programs.entity.programId,
-      sourceEntity,
-      "position"
+    let sourceCreatureComponentPda = FindComponentPda(
+      programs.creature.programId,
+      sourceCreature,
+      "creature"
     );
-    // let targetEntityComponentPda = FindComponentPda(
-    //   programs.entity.programId,
-    //   targetEntity,
-    //   "entity"
-    // );
+    let targetCreatureComponentPda = FindComponentPda(
+      programs.creature.programId,
+      targetCreature,
+      "creature"
+    );
 
-    // let usingEntityComponentPda = FindComponentPda(
-    //   programs.entity.programId,
-    //   usingEntity,
-    //   "entity"
-    // );
-
-    // console.log({
-    //   payer: provider.wallet.publicKey,
-    //   entity: sourceEntity,
-    //   data: sourceEntityComponentPda,
-    //   componentProgram: programs.entity.programId,
-    // });
+    let usingCreatureComponentPda = FindComponentPda(
+      programs.creature.programId,
+      usingCreature,
+      "creature"
+    );
 
     const tx = new anchor.web3.Transaction();
     tx.add(
       createInitializeComponentInstruction({
         payer: provider.wallet.publicKey,
-        entity: sourceEntity,
-        data: sourceEntityComponentPda,
-        componentProgram: programs.position.programId,
+        entity: sourceCreature,
+        data: sourceCreatureComponentPda,
+        componentProgram: programs.creature.programId,
       })
     );
-    // tx.add(
-    //   createInitializeComponentInstruction({
-    //     payer: provider.wallet.publicKey,
-    //     entity: targetEntity,
-    //     data: targetEntityComponentPda,
-    //     componentProgram: programs.entity.programId,
-    //   })
-    // );
-    // tx.add(
-    //   createInitializeComponentInstruction({
-    //     payer: provider.wallet.publicKey,
-    //     entity: usingEntity,
-    //     data: usingEntityComponentPda,
-    //     componentProgram: programs.entity.programId,
-    //   })
-    // );
-    await provider.sendAndConfirm(tx, [], { skipPreflight: true });
+    tx.add(
+      createInitializeComponentInstruction({
+        payer: provider.wallet.publicKey,
+        entity: targetCreature,
+        data: targetCreatureComponentPda,
+        componentProgram: programs.creature.programId,
+      })
+    );
+    tx.add(
+      createInitializeComponentInstruction({
+        payer: provider.wallet.publicKey,
+        entity: usingCreature,
+        data: usingCreatureComponentPda,
+        componentProgram: programs.creature.programId,
+      })
+    );
+    await provider.sendAndConfirm(tx);
   });
 });

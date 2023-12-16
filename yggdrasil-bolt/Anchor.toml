@@ -5,13 +5,12 @@ seeds = false
 skip-lint = false
 
 [programs.devnet]
-entity = "FYUZaYADeoXV5MeMmro1jzJg7LMs7ruG3PtBwgT5V5Fx"
+creature = "3nt8wnuNGQKG57UgSDsM1HL86kQZcwjbv95V9ZUexW2a"
 source-perform-action-on-target-using = "9NEta1kQAHsxSBnfjEpC9wfaDwpAVgt3pdnnDWhwAird"
 yggdrasil_bolt = "9JBtwqvWsuEKUpswiR6vERUXnmcSGVXWUfsr7N8RQQTk"
 
 [programs.localnet]
-entity = "FYUZaYADeoXV5MeMmro1jzJg7LMs7ruG3PtBwgT5V5Fx"
-position = "B6ZpMqEYFiBfUc98Z6FsA87RCrVhTEGEbzcAfVzZuffP"
+creature = "3nt8wnuNGQKG57UgSDsM1HL86kQZcwjbv95V9ZUexW2a"
 source-perform-action-on-target-using = "9NEta1kQAHsxSBnfjEpC9wfaDwpAVgt3pdnnDWhwAird"
 yggdrasil_bolt = "9JBtwqvWsuEKUpswiR6vERUXnmcSGVXWUfsr7N8RQQTk"
 
