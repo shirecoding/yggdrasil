@@ -26,11 +26,7 @@ pub mod source_perform_action_on_target_using {
             }
         }
 
-        Ok((
-            *ctx.accounts.source,
-            *ctx.accounts.target,
-            *ctx.accounts.using,
-        ))
+        Ok((*ctx.accounts.source, *target, *ctx.accounts.using))
     }
 }
 

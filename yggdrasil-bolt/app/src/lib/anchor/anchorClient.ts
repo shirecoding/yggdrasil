@@ -22,11 +22,7 @@ import {
   FindWorldRegistryPda,
 } from "bolt-sdk";
 
-import positionIdl from "./solana/idl/position.json";
-import systemMovementIdl from "./solana/idl/system_movement.json";
 import yggdrasilIdl from "./solana/idl/yggdrasil_bolt.json";
-import { Position } from "./solana/types/position";
-import { SystemMovement } from "./solana/types/system_movement";
 import { YggdrasilBolt } from "./solana/types/yggdrasil_bolt";
 
 import { WORLD_ID, PROGRAM_IDS } from "./defs";
