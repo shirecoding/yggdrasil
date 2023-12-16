@@ -23,23 +23,16 @@ import {
 } from "bolt-sdk";
 
 import yggdrasilIdl from "./solana/idl/yggdrasil_bolt.json";
+import creatureIdl from "./solana/idl/creature.json";
+import modifyCreatureIdl from "./solana/idl/modify_creature.json";
+import sourcePerformActionOnTargetUsingIdl from "./solana/idl/source_perform_action_on_target_using.json";
+
 import { YggdrasilBolt } from "./solana/types/yggdrasil_bolt";
+import { Creature } from "./solana/types/creature";
+import { ModifyCreature } from "./solana/types/modify_creature";
+import { SourcePerformActionOnTargetUsing } from "./solana/types/source_perform_action_on_target_using";
 
 import { WORLD_ID, PROGRAM_IDS } from "./defs";
-
-// from bolt-sdk
-// export declare const PROGRAM_ADDRESS = "WorLD15A7CrDwLcLy4fRqtaTb9fbd8o8iqiEMUDse2n";
-// export declare const PROGRAM_ID: PublicKey;
-// export declare function FindWorldRegistryPda(programId?: PublicKey): PublicKey;
-// export declare function FindWorldPda(id: BN, programId?: PublicKey): PublicKey;
-// export declare function FindEntityPda(worldId: BN, entityId: BN, programId?: PublicKey): PublicKey;
-// export declare function FindComponentPda(componentProgramId: PublicKey, entity: PublicKey, componentId: string): PublicKey;
-
-import {
-  TOKEN_PROGRAM_ID,
-  ASSOCIATED_TOKEN_PROGRAM_ID,
-  getAssociatedTokenAddress,
-} from "@solana/spl-token";
 
 import { Wallet, AnchorWallet } from "@solana/wallet-adapter-react";
 
@@ -62,6 +55,9 @@ export interface TransactionResult {
 
 export interface Programs {
   yggdrasil: anchor.Program<YggdrasilBolt>;
+  creature: anchor.Program<Creature>;
+  modifyCreature: anchor.Program<ModifyCreature>;
+  sourcePerformActionOnTargetUsing: anchor.Program<SourcePerformActionOnTargetUsing>;
 }
 
 export class AnchorClient {
@@ -108,6 +104,22 @@ export class AnchorClient {
         PROGRAM_IDS[process.env.ENVIRONMENT].yggdrasil,
         this.provider
       ),
+      creature: new anchor.Program<Creature>(
+        creatureIdl as any,
+        PROGRAM_IDS[process.env.ENVIRONMENT].creature,
+        this.provider
+      ),
+      modifyCreature: new anchor.Program<ModifyCreature>(
+        modifyCreatureIdl as any,
+        PROGRAM_IDS[process.env.ENVIRONMENT].modifyCreature,
+        this.provider
+      ),
+      sourcePerformActionOnTargetUsing:
+        new anchor.Program<SourcePerformActionOnTargetUsing>(
+          sourcePerformActionOnTargetUsingIdl as any,
+          PROGRAM_IDS[process.env.ENVIRONMENT].sourcePerformActionOnTargetUsing,
+          this.provider
+        ),
     };
   }
 
