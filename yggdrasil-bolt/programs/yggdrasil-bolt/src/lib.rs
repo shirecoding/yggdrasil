@@ -18,8 +18,14 @@ pub mod yggdrasil_bolt {
         Ok(())
     }
 
-    pub fn create_player(ctx: Context<CreatePlayer>, name: String, uri: String) -> Result<()> {
+    pub fn create_player(
+        ctx: Context<CreatePlayer>,
+        entity: Pubkey,
+        name: String,
+        uri: String,
+    ) -> Result<()> {
         ctx.accounts.player.bump = ctx.bumps.player;
+        ctx.accounts.player.entity = entity;
         ctx.accounts.player.name = pad_string(&name, PLAYER_NAME_SIZE - STRING_PREFIX_SIZE);
         ctx.accounts.player.uri = pad_string(&uri, PLAYER_URI_SIZE - STRING_PREFIX_SIZE);
         Ok(())

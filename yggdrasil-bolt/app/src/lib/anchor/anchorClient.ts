@@ -9,10 +9,11 @@ import {
   ParsedAccountData,
 } from "@solana/web3.js";
 import BN from "bn.js";
-import { getRandomBN } from "./utils";
+import { serializeArgs } from "./utils";
 
 import {
   createAddEntityInstruction,
+  createApplyInstruction,
   createInitializeComponentInstruction,
   createInitializeNewWorldInstruction,
   createInitializeRegistryInstruction,
@@ -20,17 +21,18 @@ import {
   FindEntityPda,
   FindWorldPda,
   FindWorldRegistryPda,
+  World,
 } from "bolt-sdk";
 
-import yggdrasilIdl from "./solana/idl/yggdrasil_bolt.json";
-import creatureIdl from "./solana/idl/creature.json";
-import modifyCreatureIdl from "./solana/idl/modify_creature.json";
-import sourcePerformActionOnTargetUsingIdl from "./solana/idl/source_perform_action_on_target_using.json";
+import yggdrasilIdl from "./target/idl/yggdrasil_bolt.json";
+import creatureIdl from "./target/idl/creature.json";
+import modifyCreatureIdl from "./target/idl/modify_creature.json";
+import sourcePerformActionOnTargetUsingIdl from "./target/idl/source_perform_action_on_target_using.json";
 
-import { YggdrasilBolt } from "./solana/types/yggdrasil_bolt";
-import { Creature } from "./solana/types/creature";
-import { ModifyCreature } from "./solana/types/modify_creature";
-import { SourcePerformActionOnTargetUsing } from "./solana/types/source_perform_action_on_target_using";
+import { YggdrasilBolt } from "./target/types/yggdrasil_bolt";
+import { Creature } from "./target/types/creature";
+import { ModifyCreature } from "./target/types/modify_creature";
+import { SourcePerformActionOnTargetUsing } from "./target/types/source_perform_action_on_target_using";
 
 import { WORLD_ID, PROGRAM_IDS } from "./defs";
 
@@ -46,6 +48,14 @@ export interface Player {
   name: string;
   uri: string;
   bump: number;
+}
+
+enum Modification {
+  Initialize = "Initialize",
+}
+
+enum Action {
+  Damage = "Damage",
 }
 
 export interface TransactionResult {
@@ -178,12 +188,17 @@ export class AnchorClient {
   }
 
   async createPlayer(name: string, uri: string): Promise<TransactionResult> {
-    const [pda, _] = this.getPlayerPda();
+    // create creature entity
+    const [entity, creature] = await this.createCreature(
+      this.anchorWallet.publicKey
+    );
+
+    const [player, _] = this.getPlayerPda();
 
     const ix = await this.programs.yggdrasil.methods
-      .createPlayer(name, uri)
+      .createPlayer(entity, name, uri)
       .accounts({
-        player: pda,
+        player: player,
         signer: this.anchorWallet.publicKey,
         systemProgram: web3.SystemProgram.programId,
       })
@@ -192,39 +207,73 @@ export class AnchorClient {
     const tx = new Transaction();
     tx.add(ix);
 
+    console.log(`
+      wallet: ${this.anchorWallet.publicKey}
+      player: ${player}
+      entity: ${entity}
+      creature: ${creature}
+    `);
+
     return await this.executeTransaction(tx);
+  }
 
-    // const worldId = new BN(WORLD_ID);
-    // const worldPda = FindWorldPda(worldId);
+  async createCreature(authority: PublicKey): Promise<[PublicKey, PublicKey]> {
+    // create entity and creature for player
+    const worldId = new BN(WORLD_ID);
+    const world = FindWorldPda(worldId);
+    const entityId = (await World.fromAccountAddress(this.connection, world))
+      .entities as BN;
 
-    // const entityId = getRandomBN(64); // TODO: NEED TO KEEP TRACK TO NOT SELECT AN ID ALREADY USED
-    // const entityPda = FindEntityPda(worldId, entityId);
+    // get next entity id
+    const entity = FindEntityPda(worldId, entityId);
 
-    // // Create player entity
-    // let createEntityIx = createAddEntityInstruction({
-    //   world: worldPda,
-    //   payer: this.anchorWallet.publicKey,
-    //   entity: entityPda,
-    // });
-    // await this.executeTransaction(new Transaction().add(createEntityIx));
+    // create entity
+    await this.executeTransaction(
+      new Transaction().add(
+        createAddEntityInstruction({
+          world: world,
+          payer: authority,
+          entity: entity,
+        })
+      )
+    );
 
-    // console.log(`Created player entityPda: ${entityPda}`);
+    // create creature
+    const creature = FindComponentPda(
+      this.programs.creature.programId,
+      entity,
+      "creature"
+    );
+    await this.executeTransaction(
+      new Transaction().add(
+        createInitializeComponentInstruction({
+          payer: authority,
+          entity: entity,
+          data: creature,
+          componentProgram: this.programs.creature.programId,
+        })
+      )
+    );
 
-    // // Create & attach position component
-    // let positionDataPda = FindComponentPda(
-    //   this.programs.position.programId,
-    //   entityPda,
-    //   "position"
-    // );
-    // let initComponentIx = createInitializeComponentInstruction({
-    //   payer: this.anchorWallet.publicKey,
-    //   entity: entityPda,
-    //   data: positionDataPda,
-    //   componentProgram: this.programs.position.programId,
-    // });
-    // return await this.executeTransaction(
-    //   new Transaction().add(initComponentIx)
-    // );
+    // initialize creature
+    await this.executeTransaction(
+      new Transaction().add(
+        createApplyInstruction(
+          {
+            componentProgram: this.programs.creature.programId,
+            boltComponent: creature,
+            boltSystem: this.programs.modifyCreature.programId,
+          },
+          {
+            args: serializeArgs({
+              modification: Modification.Initialize,
+              authority: authority.toString(),
+            }),
+          }
+        )
+      )
+    );
+    return [entity, creature];
   }
 
   /*

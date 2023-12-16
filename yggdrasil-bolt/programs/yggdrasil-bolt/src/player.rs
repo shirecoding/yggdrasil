@@ -20,12 +20,13 @@ pub struct CreatePlayer<'info> {
 #[account]
 pub struct Player {
     pub bump: u8,
+    pub entity: Pubkey,
     pub name: String,
     pub uri: String,
 }
 
 impl Player {
     pub fn len() -> usize {
-        DISCRIMINATOR_SIZE + BUMP_SIZE + PLAYER_NAME_SIZE + PLAYER_URI_SIZE
+        DISCRIMINATOR_SIZE + BUMP_SIZE + PUBKEY_SIZE + PLAYER_NAME_SIZE + PLAYER_URI_SIZE
     }
 }

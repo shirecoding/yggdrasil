@@ -37,12 +37,12 @@ export class OnboardPlayerPage extends LitElement {
     const { name, portrait } = e.detail;
 
     if (this.anchorClient && this.nftStorageClient) {
-      // // Try to create the world (might already be created and throw error)
-      // try {
-      //   await this.anchorClient.initializeWorld();
-      // } catch (error) {
-      //   console.log(`World already created: ${WORLD_ID}`);
-      // }
+      // Try to create the world (might already be created and throw error)
+      try {
+        await this.anchorClient.initializeWorld();
+      } catch (error) {
+        console.log(`World already created: ${WORLD_ID}`);
+      }
 
       // Create NFT Storage for portrait
       const uri = await this.nftStorageClient.storeImageFromUrl({
