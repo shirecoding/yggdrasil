@@ -109,7 +109,9 @@ export class OnboardPlayerPage extends LitElement {
       <h1>Welcome ${player.name}</h1>
       <img src="${portrait}" class="portrait" />
       <br />
-      <sl-button type="submit" variant="primary">Enter Yggdrasil</sl-button>
+      <a href="/game">
+        <sl-button type="submit" variant="primary">Enter Yggdrasil</sl-button>
+      </a>
     `;
   }
 
@@ -143,7 +145,11 @@ export class OnboardPlayerPage extends LitElement {
             `;
           })}
           <br />
-          <sl-button type="submit" variant="primary">Enter Yggdrasil</sl-button>
+          <a href="/game">
+            <sl-button type="submit" variant="primary"
+              >Enter Yggdrasil</sl-button
+            >
+          </a>
         </form>
       </form-event>
     `;

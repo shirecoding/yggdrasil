@@ -36,7 +36,7 @@ export class AppMain extends LitElement {
     const router = new Router(this.shadowRoot?.querySelector("#page-route"));
     router.setRoutes([
       { path: "/game", component: "game-page" },
-      { path: "(.*)", component: "game-page" },
+      { path: "(.*)", component: "onboard-player-page" }, // default onboard player
     ]);
   }
 

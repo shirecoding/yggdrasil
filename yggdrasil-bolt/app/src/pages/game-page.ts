@@ -17,12 +17,11 @@ export class GamePage extends LitElement {
 
   render() {
     return html`
-      <onboard-player-page></onboard-player-page>
-      <!-- <h1>Game Page</h1>
+      <h1>Game Page</h1>
       <message-box
         @on-message="${this.onMessage}"
         id="message-box"
-      ></message-box> -->
+      ></message-box>
     `;
   }
 }
