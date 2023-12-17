@@ -12,6 +12,7 @@ import BN from "bn.js";
 import { serializeArgs } from "./utils";
 import { DISCRIMINATOR_SIZE, PUBKEY_SIZE } from "./defs";
 import {
+  createApply3Instruction,
   createAddEntityInstruction,
   createApplyInstruction,
   createInitializeComponentInstruction,
@@ -70,6 +71,7 @@ export interface PlayerInfo {
   player: Player;
   portrait: string;
   creature: CreatureData;
+  creaturePda: PublicKey;
 }
 
 enum Modification {
@@ -214,7 +216,8 @@ export class AnchorClient {
     const player = await this.getPlayer();
     if (player) {
       // get creature
-      const creature = await this.getCreature(player.entity);
+      const [creaturePda, creature] = await this.getCreature(player.entity);
+
       // get portrait
       const playerMetadata = await (
         await fetch(nft_uri_to_url(player.uri))
@@ -224,12 +227,40 @@ export class AnchorClient {
         player,
         portrait,
         creature,
+        creaturePda,
       };
     }
     return null;
   }
 
-  async getAllPlayerCreaturesLoggedIn(): Promise<CreatureData[]> {
+  async attackCreature(
+    sourceCreature: PublicKey,
+    targetCreature: PublicKey
+  ): Promise<TransactionResult> {
+    let ix = createApply3Instruction(
+      {
+        componentProgram1: this.programs.creature.programId,
+        componentProgram2: this.programs.creature.programId,
+        componentProgram3: this.programs.creature.programId,
+        boltComponent1: sourceCreature,
+        boltComponent2: targetCreature,
+        boltComponent3: sourceCreature,
+        boltSystem: this.programs.sourcePerformActionOnTargetUsing.programId,
+      },
+      {
+        args: serializeArgs({
+          action: Action.Damage,
+        }),
+      }
+    );
+
+    const tx = new Transaction();
+    tx.add(ix);
+
+    return await this.executeTransaction(tx);
+  }
+
+  async getAllPlayerCreaturesLoggedIn(): Promise<[PublicKey, CreatureData][]> {
     const creatures = await this.programs.creature.account.creature.all([
       {
         memcmp: {
@@ -238,10 +269,10 @@ export class AnchorClient {
         },
       },
     ]);
-    return creatures.map((x) => x.account as any);
+    return creatures.map((x) => [x.publicKey, x.account] as any);
   }
 
-  async getCreature(entity: PublicKey): Promise<CreatureData> {
+  async getCreature(entity: PublicKey): Promise<[PublicKey, CreatureData]> {
     const creature = FindComponentPda(
       this.programs.creature.programId,
       entity,
@@ -249,7 +280,7 @@ export class AnchorClient {
     );
     let res: any =
       await this.programs.creature.account.creature.fetch(creature);
-    return res as CreatureData;
+    return [creature, res as CreatureData];
   }
 
   async createPlayer(name: string, uri: string): Promise<TransactionResult> {

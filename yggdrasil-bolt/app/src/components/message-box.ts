@@ -43,7 +43,6 @@ export class MessageBox extends LitElement {
   }
 
   onMessage(e: CustomEvent) {
-    console.log(e);
     // Dispatch on-message
     this.dispatchEvent(
       new CustomEvent<Message>("on-message", {

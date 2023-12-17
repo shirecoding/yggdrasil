@@ -6,6 +6,9 @@ import { playerInfoContext } from "./onboard-player-page";
 import { PlayerInfo } from "../lib/anchor/anchorClient";
 import { anchorClientContext } from "../layout/app-main";
 import { AnchorClient, CreatureData, Player } from "../lib/anchor/anchorClient";
+import { PublicKey } from "@solana/web3.js";
+
+const regex = /attack(.*)/i;
 
 @customElement("game-page")
 export class GamePage extends LitElement {
@@ -17,17 +20,43 @@ export class GamePage extends LitElement {
   accessor playerInfo: PlayerInfo | null = null;
 
   @state()
-  accessor allPlayerCreatures: CreatureData[] | null = null;
+  accessor allPlayerCreatures: [PublicKey, CreatureData][] | null = null;
 
   @query("#message-box")
   accessor messageBox!: MessageBox;
 
-  onMessage(e: CustomEvent<Message>) {
+  async onMessage(e: CustomEvent<Message>) {
     const { author, body } = e.detail;
     this.messageBox.addMessage({
       body: body,
       author: author,
     });
+
+    // HARD CODED ATTACK
+    if (this.allPlayerCreatures) {
+      const match = body.match(regex);
+
+      if (match && match[1]) {
+        const target = match[1].trim().toLowerCase();
+
+        console.log(`You attacked ${target}`);
+
+        // find the target
+        this.allPlayerCreatures.forEach(async ([targetPda, creature]) => {
+          if (
+            this.anchorClient &&
+            this.playerInfo &&
+            creature.name.toLowerCase() === target
+          ) {
+            console.log(`FOUND TARGET ${targetPda}`);
+            await this.anchorClient.attackCreature(
+              this.playerInfo.creaturePda,
+              targetPda
+            );
+          }
+        });
+      }
+    }
   }
 
   static styles = css`
@@ -72,15 +101,18 @@ export class GamePage extends LitElement {
   getPlayerList() {
     if (this.allPlayerCreatures) {
       return html`
-        <sl-menu class="menu-value" style="max-width: 200px;">
-          ${this.allPlayerCreatures.map((x) => {
-            return html`<sl-menu-item>${x.name}</sl-menu-item>`;
+        <sl-menu class="menu-value" style="width: 300px;">
+          ${this.allPlayerCreatures.map(([pda, creature]) => {
+            return html`<sl-menu-item
+              >${creature.name} (hp:
+              ${creature.hp}/${creature.maxHp})</sl-menu-item
+            >`;
           })}
         </sl-menu>
       `;
     } else {
       return html`
-        <sl-menu class="menu-value" style="max-width: 200px;">
+        <sl-menu class="menu-value" style="width: 300px;">
           <sl-menu-item value="opt-1">No one is here</sl-menu-item>
         </sl-menu>
       `;
