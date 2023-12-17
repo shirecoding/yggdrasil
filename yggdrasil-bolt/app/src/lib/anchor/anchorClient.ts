@@ -35,6 +35,7 @@ import { ModifyCreature } from "./target/types/modify_creature";
 import { SourcePerformActionOnTargetUsing } from "./target/types/source_perform_action_on_target_using";
 
 import { WORLD_ID, PROGRAM_IDS } from "./defs";
+import { nft_uri_to_url } from "../utils";
 
 import { Wallet, AnchorWallet } from "@solana/wallet-adapter-react";
 
@@ -48,6 +49,25 @@ export interface Player {
   name: string;
   uri: string;
   bump: number;
+  entity: PublicKey;
+}
+
+export interface CreatureData {
+  logged_in: boolean;
+  // state
+  hp: number;
+  maxHp: number;
+  mp: number;
+  maxMp: number;
+  state: number; // 0: alive, 1: dead
+  // modifiers
+  level: number;
+}
+
+export interface PlayerInfo {
+  player: Player;
+  portrait: string;
+  creature: CreatureData;
 }
 
 enum Modification {
@@ -185,6 +205,37 @@ export class AnchorClient {
     } catch (error) {
       return null;
     }
+  }
+
+  async getPlayerInfo(): Promise<PlayerInfo | null> {
+    // get player
+    const player = await this.getPlayer();
+    if (player) {
+      // get creature
+      const creature = await this.getCreature(player.entity);
+      // get portrait
+      const playerMetadata = await (
+        await fetch(nft_uri_to_url(player.uri))
+      ).json();
+      const portrait = nft_uri_to_url(playerMetadata.image);
+      return {
+        player,
+        portrait,
+        creature,
+      };
+    }
+    return null;
+  }
+
+  async getCreature(entity: PublicKey): Promise<CreatureData> {
+    const creature = FindComponentPda(
+      this.programs.creature.programId,
+      entity,
+      "creature"
+    );
+    let res: any =
+      await this.programs.creature.account.creature.fetch(creature);
+    return res as CreatureData;
   }
 
   async createPlayer(name: string, uri: string): Promise<TransactionResult> {

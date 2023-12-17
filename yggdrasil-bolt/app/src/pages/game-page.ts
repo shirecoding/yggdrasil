@@ -1,9 +1,21 @@
-import { LitElement, html, css } from "lit";
+import { LitElement, html, css, PropertyValues, PropertyValueMap } from "lit";
 import { customElement, property, state, query } from "lit/decorators.js";
 import { Message, MessageBox } from "../components/message-box";
+import { consume, provide, createContext } from "@lit/context";
+import { playerInfoContext } from "./onboard-player-page";
+import { PlayerInfo } from "../lib/anchor/anchorClient";
+import { anchorClientContext } from "../layout/app-main";
+import { AnchorClient, CreatureData, Player } from "../lib/anchor/anchorClient";
 
 @customElement("game-page")
 export class GamePage extends LitElement {
+  @consume({ context: anchorClientContext, subscribe: true })
+  @state()
+  accessor anchorClient: AnchorClient | null = null;
+
+  @state()
+  accessor playerInfo: PlayerInfo | null = null;
+
   @query("#message-box")
   accessor messageBox!: MessageBox;
 
@@ -20,21 +32,44 @@ export class GamePage extends LitElement {
       display: flex;
       height: 100vh;
     }
-
+    .portrait {
+      height: 150px;
+      padding: 5px;
+    }
     .main-content {
       flex: 1;
       padding: 10px;
     }
-
     .right-menu {
       width: 200px;
       padding: 10px;
     }
   `;
 
+  async fetchPlayer() {
+    if (this.anchorClient) {
+      this.playerInfo = await this.anchorClient.getPlayerInfo();
+    }
+  }
+
+  async willUpdate(changedProperties: PropertyValues<this>) {
+    if (changedProperties.has("anchorClient")) {
+      await this.fetchPlayer();
+    }
+  }
+
   render() {
     return html`
       <h1>Game Page</h1>
+
+      <img src="${this.playerInfo?.portrait}" class="portrait" />
+      <p>
+        hp: ${this.playerInfo?.creature.hp}/${this.playerInfo?.creature.maxHp}
+      </p>
+      <p>
+        mp: ${this.playerInfo?.creature.mp}/${this.playerInfo?.creature.maxMp}
+      </p>
+
       <div class="container">
         <div class="main-content">
           <message-box

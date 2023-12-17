@@ -5,19 +5,17 @@ import {
   anchorClientContext,
   nftStorageClientContext,
 } from "../layout/app-main";
-import { AnchorClient, Player } from "../lib/anchor/anchorClient";
+import { AnchorClient, CreatureData, Player } from "../lib/anchor/anchorClient";
 import { WORLD_ID } from "../lib/anchor/defs";
 import { DEFAULT_PORTRAITS } from "../lib/defs";
 import { NFTStorageClient } from "../lib/nftStorageClient";
 import { nft_uri_to_url } from "../lib/utils";
+import { PlayerInfo } from "../lib/anchor/anchorClient";
 
-export interface PlayerInfo {
-  player: Player;
-  portrait: string;
-}
-
-// playerContext
-export const playerContext = createContext<PlayerInfo | null>(Symbol("player"));
+// playerInfoContext
+export const playerInfoContext = createContext<PlayerInfo | null>(
+  Symbol("player-info")
+);
 
 @customElement("onboard-player-page")
 export class OnboardPlayerPage extends LitElement {
@@ -29,9 +27,9 @@ export class OnboardPlayerPage extends LitElement {
   @state()
   accessor nftStorageClient: NFTStorageClient | null = null;
 
-  @provide({ context: playerContext })
+  @provide({ context: playerInfoContext })
   @state()
-  accessor player: PlayerInfo | null = null;
+  accessor playerInfo: PlayerInfo | null = null;
 
   async onCreateCharacter(e: CustomEvent<{ name: string; portrait: string }>) {
     const { name, portrait } = e.detail;
@@ -61,17 +59,9 @@ export class OnboardPlayerPage extends LitElement {
 
   async fetchPlayer() {
     if (this.anchorClient) {
-      const player = await this.anchorClient.getPlayer();
-      if (player) {
-        // get portrait
-        const playerMetadata = await (
-          await fetch(nft_uri_to_url(player.uri))
-        ).json();
-        const portrait = nft_uri_to_url(playerMetadata.image);
-        this.player = {
-          player,
-          portrait,
-        };
+      const playerInfo = await this.anchorClient.getPlayerInfo();
+      if (playerInfo) {
+        this.playerInfo = playerInfo; // set context
       }
     }
   }
@@ -103,8 +93,8 @@ export class OnboardPlayerPage extends LitElement {
   `;
 
   getWelcomePlayer() {
-    const player = this.player!.player;
-    const portrait = this.player!.portrait;
+    const player = this.playerInfo!.player;
+    const portrait = this.playerInfo!.portrait;
     return html`
       <h1>Welcome ${player.name}</h1>
       <img src="${portrait}" class="portrait" />
@@ -156,6 +146,6 @@ export class OnboardPlayerPage extends LitElement {
   }
 
   render() {
-    return this.player ? this.getWelcomePlayer() : this.getOnboardPlayer();
+    return this.playerInfo ? this.getWelcomePlayer() : this.getOnboardPlayer();
   }
 }
