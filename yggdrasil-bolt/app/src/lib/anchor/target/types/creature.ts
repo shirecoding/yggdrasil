@@ -25,6 +25,10 @@ export type Creature = {
             "type": "u8"
           },
           {
+            "name": "name",
+            "type": "string"
+          },
+          {
             "name": "x",
             "type": "i16"
           },
@@ -99,6 +103,10 @@ export const IDL: Creature = {
           {
             "name": "category",
             "type": "u8"
+          },
+          {
+            "name": "name",
+            "type": "string"
           },
           {
             "name": "x",

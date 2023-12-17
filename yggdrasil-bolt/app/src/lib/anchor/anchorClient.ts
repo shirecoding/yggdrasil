@@ -229,7 +229,7 @@ export class AnchorClient {
     return null;
   }
 
-  async getAllPlayers() {
+  async getAllPlayerCreaturesLoggedIn(): Promise<CreatureData[]> {
     const creatures = await this.programs.creature.account.creature.all([
       {
         memcmp: {
@@ -238,7 +238,7 @@ export class AnchorClient {
         },
       },
     ]);
-    return creatures;
+    return creatures.map((x) => x.account as any);
   }
 
   async getCreature(entity: PublicKey): Promise<CreatureData> {

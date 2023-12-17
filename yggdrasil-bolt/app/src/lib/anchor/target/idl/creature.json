@@ -25,6 +25,10 @@
             "type": "u8"
           },
           {
+            "name": "name",
+            "type": "string"
+          },
+          {
             "name": "x",
             "type": "i16"
           },
@@ -71,5 +75,8 @@
         ]
       }
     }
-  ]
+  ],
+  "metadata": {
+    "address": "3nt8wnuNGQKG57UgSDsM1HL86kQZcwjbv95V9ZUexW2a"
+  }
 }

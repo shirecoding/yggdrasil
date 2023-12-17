@@ -17,7 +17,7 @@ export class GamePage extends LitElement {
   accessor playerInfo: PlayerInfo | null = null;
 
   @state()
-  accessor allPlayerCreatures: PlayerInfo[] | null = null;
+  accessor allPlayerCreatures: CreatureData[] | null = null;
 
   @query("#message-box")
   accessor messageBox!: MessageBox;
@@ -52,20 +52,38 @@ export class GamePage extends LitElement {
   async fetchPlayer() {
     if (this.anchorClient) {
       this.playerInfo = await this.anchorClient.getPlayerInfo();
-      await this.firstAllPlayers();
     }
   }
 
   async willUpdate(changedProperties: PropertyValues<this>) {
     if (changedProperties.has("anchorClient")) {
       await this.fetchPlayer();
+      await this.fetchAllPlayerCreatures();
     }
   }
 
-  async firstAllPlayers() {
+  async fetchAllPlayerCreatures() {
     if (this.anchorClient) {
-      const creatures = await this.anchorClient.getAllPlayers();
-      console.log(creatures);
+      this.allPlayerCreatures =
+        await this.anchorClient.getAllPlayerCreaturesLoggedIn();
+    }
+  }
+
+  getPlayerList() {
+    if (this.allPlayerCreatures) {
+      return html`
+        <sl-menu class="menu-value" style="max-width: 200px;">
+          ${this.allPlayerCreatures.map((x) => {
+            return html`<sl-menu-item>${x.name}</sl-menu-item>`;
+          })}
+        </sl-menu>
+      `;
+    } else {
+      return html`
+        <sl-menu class="menu-value" style="max-width: 200px;">
+          <sl-menu-item value="opt-1">No one is here</sl-menu-item>
+        </sl-menu>
+      `;
     }
   }
 
@@ -88,23 +106,7 @@ export class GamePage extends LitElement {
             id="message-box"
           ></message-box>
         </div>
-        <div class="right-menu">
-          <sl-menu class="menu-value" style="max-width: 200px;">
-            <sl-menu-item value="opt-1">Option 1</sl-menu-item>
-            <sl-menu-item value="opt-2">Option 2</sl-menu-item>
-            <sl-menu-item value="opt-3">Option 3</sl-menu-item>
-            <sl-divider></sl-divider>
-            <sl-menu-item type="checkbox" value="opt-4"
-              >Checkbox 4</sl-menu-item
-            >
-            <sl-menu-item type="checkbox" value="opt-5"
-              >Checkbox 5</sl-menu-item
-            >
-            <sl-menu-item type="checkbox" value="opt-6"
-              >Checkbox 6</sl-menu-item
-            >
-          </sl-menu>
-        </div>
+        ${this.getPlayerList()}
       </div>
     `;
   }
