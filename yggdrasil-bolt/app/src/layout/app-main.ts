@@ -33,7 +33,9 @@ export class AppMain extends LitElement {
 
   // Setup router
   firstUpdated() {
-    const router = new Router(this.shadowRoot?.querySelector("#page-route"));
+    const router = new Router(this.shadowRoot?.querySelector("#page-route"), {
+      baseUrl: process.env.ENVIRONMENT === "devnet" ? "/yggdrasil/" : "/",
+    });
     router.setRoutes([
       { path: "/game", component: "game-page" },
       { path: "(.*)", component: "onboard-player-page" }, // default onboard player
