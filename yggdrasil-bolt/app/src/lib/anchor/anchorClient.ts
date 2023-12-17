@@ -28,6 +28,7 @@ import { encode as encodeb58 } from "bs58";
 
 import yggdrasilIdl from "./target/idl/yggdrasil_bolt.json";
 import creatureIdl from "./target/idl/creature.json";
+import worldIdl from "./target/idl/world.json";
 import modifyCreatureIdl from "./target/idl/modify_creature.json";
 import sourcePerformActionOnTargetUsingIdl from "./target/idl/source_perform_action_on_target_using.json";
 
@@ -88,6 +89,7 @@ export interface TransactionResult {
 }
 
 export interface Programs {
+  world: anchor.Program;
   yggdrasil: anchor.Program<YggdrasilBolt>;
   creature: anchor.Program<Creature>;
   modifyCreature: anchor.Program<ModifyCreature>;
@@ -133,6 +135,11 @@ export class AnchorClient {
     );
 
     this.programs = {
+      world: new anchor.Program(
+        worldIdl as any,
+        worldIdl.metadata.address,
+        this.provider
+      ),
       yggdrasil: new anchor.Program<YggdrasilBolt>(
         yggdrasilIdl as any,
         PROGRAM_IDS[process.env.ENVIRONMENT].yggdrasil,
@@ -162,16 +169,20 @@ export class AnchorClient {
   */
 
   async initializeWorld(): Promise<TransactionResult> {
-    // Only need to be called once to instantiate the world
-
+    // Initialize world registry (Should already be there)
     const registryPda = FindWorldRegistryPda();
-    const worldPda = FindWorldPda(new BN(WORLD_ID));
-
     const initializeRegistryIx = createInitializeRegistryInstruction({
       registry: registryPda,
       payer: this.anchorWallet.publicKey,
     });
     await this.executeTransaction(new Transaction().add(initializeRegistryIx));
+
+    // Find the next available world
+    const registry =
+      await this.programs.world.account.registry.fetch(registryPda);
+
+    const worldId = registry.worlds as BN;
+    const worldPda = FindWorldPda(worldId);
 
     const initializeWorldIx = createInitializeNewWorldInstruction({
       world: worldPda,
@@ -180,7 +191,7 @@ export class AnchorClient {
     });
 
     console.log(`
-      Creating World: ${WORLD_ID}
+      Creating World: ${worldId}
       registryPda: ${registryPda}
       worldPda: ${worldPda}
     `);
@@ -213,7 +224,9 @@ export class AnchorClient {
 
   async getPlayerInfo(): Promise<PlayerInfo | null> {
     // get player
+
     const player = await this.getPlayer();
+
     if (player) {
       // get creature
       const [creaturePda, creature] = await this.getCreature(player.entity);
@@ -289,9 +302,7 @@ export class AnchorClient {
       this.anchorWallet.publicKey,
       name
     );
-
     const [player, _] = this.getPlayerPda();
-
     const ix = await this.programs.yggdrasil.methods
       .createPlayer(entity, name, uri)
       .accounts({
@@ -323,10 +334,8 @@ export class AnchorClient {
     const world = FindWorldPda(worldId);
     const entityId = (await World.fromAccountAddress(this.connection, world))
       .entities as BN;
-
     // get next entity id
     const entity = FindEntityPda(worldId, entityId);
-
     // create entity
     await this.executeTransaction(
       new Transaction().add(
@@ -337,13 +346,13 @@ export class AnchorClient {
         })
       )
     );
-
     // create creature
     const creature = FindComponentPda(
       this.programs.creature.programId,
       entity,
       "creature"
     );
+
     await this.executeTransaction(
       new Transaction().add(
         createInitializeComponentInstruction({

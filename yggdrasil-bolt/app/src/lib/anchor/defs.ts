@@ -1,4 +1,4 @@
-export const WORLD_ID = 1234567;
+export const WORLD_ID = 0; // -1 means not initialized (set once for devnet to create)
 export const PROGRAM_IDS = {
   localnet: {
     yggdrasil: "9JBtwqvWsuEKUpswiR6vERUXnmcSGVXWUfsr7N8RQQTk",

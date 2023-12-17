@@ -9,7 +9,7 @@ import { AnchorClient, CreatureData, Player } from "../lib/anchor/anchorClient";
 import { WORLD_ID } from "../lib/anchor/defs";
 import { DEFAULT_PORTRAITS } from "../lib/defs";
 import { NFTStorageClient } from "../lib/nftStorageClient";
-import { addBaseUrl, nft_uri_to_url } from "../lib/utils";
+import { nft_uri_to_url } from "../lib/utils";
 import { PlayerInfo } from "../lib/anchor/anchorClient";
 
 // playerInfoContext
@@ -31,29 +31,31 @@ export class OnboardPlayerPage extends LitElement {
   @state()
   accessor playerInfo: PlayerInfo | null = null;
 
+  @state()
+  accessor processing: string = "";
+
   async onCreateCharacter(e: CustomEvent<{ name: string; portrait: string }>) {
     const { name, portrait } = e.detail;
 
     if (this.anchorClient && this.nftStorageClient) {
-      // Try to create the world (might already be created and throw error)
-      try {
-        await this.anchorClient.initializeWorld();
-      } catch (error) {
-        console.log(`World already created: ${WORLD_ID}`);
-      }
-
+      this.processing = "uploading portrait to IPFS ...";
       // Create NFT Storage for portrait
       const uri = await this.nftStorageClient.storeImageFromUrl({
         name,
         description: "",
-        imageUrl: addBaseUrl(portrait),
+        imageUrl: portrait,
       });
 
       console.log(`Stored portrait at ${uri}`);
 
       // Create & fetch player
+      this.processing = `creating player ${name}, entity, creatures ...`;
       await this.anchorClient.createPlayer(name, uri);
+      this.processing = `fetching player ${name} ...`;
       await this.fetchPlayer();
+
+      // go to game on success created
+      window.location.href = "/game";
     }
   }
 
@@ -72,6 +74,10 @@ export class OnboardPlayerPage extends LitElement {
 
   async willUpdate(changedProperties: PropertyValues<this>) {
     if (changedProperties.has("anchorClient")) {
+      // Try to create the world (might already be created and throw error)
+      if (this.anchorClient && WORLD_ID < 0) {
+        await this.anchorClient.initializeWorld();
+      }
       await this.fetchPlayer();
     }
   }
@@ -89,6 +95,9 @@ export class OnboardPlayerPage extends LitElement {
     }
     .portrait-input:checked + label img {
       outline: 2px solid #e74c3c;
+    }
+    .processing {
+      color: red;
     }
   `;
 
@@ -108,6 +117,7 @@ export class OnboardPlayerPage extends LitElement {
   getOnboardPlayer() {
     return html`
       <h1>Create your character</h1>
+      <p class="processing">${this.processing}</p>
       <form-event @on-submit=${this.onCreateCharacter}>
         <form action="submit" slot="form">
           <!-- Name -->
@@ -135,11 +145,7 @@ export class OnboardPlayerPage extends LitElement {
             `;
           })}
           <br />
-          <a href="/game">
-            <sl-button type="submit" variant="primary"
-              >Enter Yggdrasil</sl-button
-            >
-          </a>
+          <sl-button type="submit" variant="primary">Enter Yggdrasil</sl-button>
         </form>
       </form-event>
     `;

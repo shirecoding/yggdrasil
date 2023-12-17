@@ -12,21 +12,26 @@ pub mod source_perform_action_on_target_using {
         ctx: Context<Component>,
         args: Vec<u8>,
     ) -> Result<(Creature, Creature, Creature)> {
+        let source = &mut ctx.accounts.source;
         let target = &mut ctx.accounts.target;
         let using = &ctx.accounts.using;
 
         match parse_args::<Args>(&args).action {
             Action::Damage => {
-                let damage = using.base_proficiency_die * using.num_proficiency_dice;
-                target.hp -= damage as u16;
+                let damage = using
+                    .base_proficiency_die
+                    .saturating_mul(using.num_proficiency_dice);
+                target.hp = target.hp.saturating_sub(damage as u16);
                 if target.hp <= 0 {
-                    target.hp = 0;
+                    target.hp = target.max_hp;
                     target.state = 1;
+                    target.level = target.level.saturating_sub(1);
+                    source.level = source.level.saturating_add(1);
                 }
             }
         }
 
-        Ok((*ctx.accounts.source, *target, *ctx.accounts.using))
+        Ok((*source, *target, *ctx.accounts.using))
     }
 }
 

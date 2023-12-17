@@ -8,7 +8,6 @@ import { AnchorClient } from "../lib/anchor/anchorClient";
 import { NFTStorageClient } from "../lib/nftStorageClient";
 import { WalletDetail } from "../components/solana-wallet";
 import { NFT_STORAGE_TOKEN } from "../lib/defs";
-import { addBaseUrl } from "../lib/utils";
 
 // Providers
 export const anchorClientContext = createContext<AnchorClient | null>(
@@ -36,8 +35,8 @@ export class AppMain extends LitElement {
   firstUpdated() {
     const router = new Router(this.shadowRoot?.querySelector("#page-route"));
     router.setRoutes([
-      { path: addBaseUrl("/game"), component: "game-page" },
-      { path: addBaseUrl("(.*)"), component: "onboard-player-page" }, // default onboard player
+      { path: "/game", component: "game-page" },
+      { path: "(.*)", component: "onboard-player-page" }, // default onboard player
     ]);
   }
 

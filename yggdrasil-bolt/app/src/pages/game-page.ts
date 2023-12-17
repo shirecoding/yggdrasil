@@ -49,10 +49,25 @@ export class GamePage extends LitElement {
             creature.name.toLowerCase() === target
           ) {
             console.log(`FOUND TARGET ${targetPda}`);
+
+            this.messageBox.addMessage({
+              body: `You swing at ${target}`,
+              author: "",
+            });
+
             await this.anchorClient.attackCreature(
               this.playerInfo.creaturePda,
               targetPda
             );
+
+            this.messageBox.addMessage({
+              body: `${target} looks hurt`,
+              author: "",
+            });
+
+            // fetch everyone again
+            await this.fetchPlayer();
+            await this.fetchAllPlayerCreatures();
           }
         });
       }
@@ -75,6 +90,9 @@ export class GamePage extends LitElement {
     .right-menu {
       width: 200px;
       padding: 10px;
+    }
+    .tutorial {
+      color: green;
     }
   `;
 
@@ -104,8 +122,8 @@ export class GamePage extends LitElement {
         <sl-menu class="menu-value" style="width: 300px;">
           ${this.allPlayerCreatures.map(([pda, creature]) => {
             return html`<sl-menu-item
-              >${creature.name} (hp:
-              ${creature.hp}/${creature.maxHp})</sl-menu-item
+              >${creature.name} (hp: ${creature.hp}/${creature.maxHp}, lvl:
+              ${creature.level})</sl-menu-item
             >`;
           })}
         </sl-menu>
@@ -129,6 +147,17 @@ export class GamePage extends LitElement {
       </p>
       <p>
         mp: ${this.playerInfo?.creature.mp}/${this.playerInfo?.creature.maxMp}
+      </p>
+      <p>lvl: ${this.playerInfo?.creature.level}</p>
+
+      <p class="tutorial">
+        Tutorial:
+        <br />
+        - You can attack a player by typing "attack [player_name]"
+        <br />
+        - You gain a level when you kill a player
+        <br />
+        - Immediatelty respawn when you die
       </p>
 
       <div class="container">

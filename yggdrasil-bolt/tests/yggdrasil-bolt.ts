@@ -66,9 +66,9 @@ describe("yggdrasil-bolt", () => {
   };
 
   // Constants used to test the program.
-  const worldId = new BN(0);
+  let worldId: BN;
+  let worldPda: PublicKey;
   const registryPda = FindWorldRegistryPda();
-  const worldPda = FindWorldPda(worldId);
 
   let sourceCreature: PublicKey;
   let targetCreature: PublicKey;
@@ -91,6 +91,19 @@ describe("yggdrasil-bolt", () => {
     });
     const tx = new anchor.web3.Transaction().add(initializeRegistryIx);
     await provider.sendAndConfirm(tx);
+  });
+
+  it("Get worldId", async () => {
+    const worldRegistry: any = await programs.world.account.registry.fetch(
+      registryPda
+    );
+    console.log(worldRegistry);
+    worldId = worldRegistry.worlds;
+    worldPda = FindWorldPda(worldId);
+    console.log(`
+      worldId: ${worldId}
+      worldPda: ${worldPda}
+    `);
   });
 
   it("InitializeNewWorld", async () => {

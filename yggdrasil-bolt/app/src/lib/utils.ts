@@ -11,10 +11,3 @@ export function nft_uri_to_url(uri: string): string {
 
   return `https://${IPFS_HTTP_GATEWAY}/ipfs/${match[1]}`;
 }
-
-export function addBaseUrl(url: string): string {
-  if (process.env.ENVIRONMENT === "devnet") {
-    return `/yggdrasil/${url}`;
-  }
-  return url;
-}
