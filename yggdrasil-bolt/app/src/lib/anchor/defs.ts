@@ -1,4 +1,4 @@
-export const WORLD_ID = 0;
+export const WORLD_ID = 1234567;
 export const PROGRAM_IDS = {
   localnet: {
     yggdrasil: "9JBtwqvWsuEKUpswiR6vERUXnmcSGVXWUfsr7N8RQQTk",
