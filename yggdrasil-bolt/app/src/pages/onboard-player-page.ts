@@ -9,7 +9,7 @@ import { AnchorClient, CreatureData, Player } from "../lib/anchor/anchorClient";
 import { WORLD_ID } from "../lib/anchor/defs";
 import { DEFAULT_PORTRAITS } from "../lib/defs";
 import { NFTStorageClient } from "../lib/nftStorageClient";
-import { nft_uri_to_url } from "../lib/utils";
+import { addBaseUrl, nft_uri_to_url } from "../lib/utils";
 import { PlayerInfo } from "../lib/anchor/anchorClient";
 
 // playerInfoContext
@@ -46,7 +46,7 @@ export class OnboardPlayerPage extends LitElement {
       const uri = await this.nftStorageClient.storeImageFromUrl({
         name,
         description: "",
-        imageUrl: portrait,
+        imageUrl: addBaseUrl(portrait),
       });
 
       console.log(`Stored portrait at ${uri}`);
