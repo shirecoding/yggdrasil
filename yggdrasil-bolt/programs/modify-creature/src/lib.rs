@@ -21,6 +21,11 @@ pub mod modify_creature {
                 let authority = Pubkey::from_str(parsed_args.authority.as_str())
                     .map_err(|err| ProgramError::Custom(err as u32))?;
 
+                // set name if provided
+                if !parsed_args.name.is_empty() {
+                    ctx.accounts.creature.name = parsed_args.name;
+                }
+
                 // status
                 ctx.accounts.creature.authority = authority;
                 ctx.accounts.creature.logged_in = true;
@@ -55,14 +60,13 @@ pub mod modify_creature {
 pub struct Component<'info> {
     #[account()]
     pub creature: Account<'info, Creature>,
-    // #[account(mut)]
-    // pub signer: Signer<'info>,
 }
 
 #[derive(BoltSerialize, BoltDeserialize)]
 struct Args {
     modification: Modification,
     authority: String,
+    name: String,
 }
 
 #[derive(BoltSerialize, BoltDeserialize)]

@@ -16,6 +16,9 @@ export class GamePage extends LitElement {
   @state()
   accessor playerInfo: PlayerInfo | null = null;
 
+  @state()
+  accessor allPlayerCreatures: PlayerInfo[] | null = null;
+
   @query("#message-box")
   accessor messageBox!: MessageBox;
 
@@ -49,12 +52,20 @@ export class GamePage extends LitElement {
   async fetchPlayer() {
     if (this.anchorClient) {
       this.playerInfo = await this.anchorClient.getPlayerInfo();
+      await this.firstAllPlayers();
     }
   }
 
   async willUpdate(changedProperties: PropertyValues<this>) {
     if (changedProperties.has("anchorClient")) {
       await this.fetchPlayer();
+    }
+  }
+
+  async firstAllPlayers() {
+    if (this.anchorClient) {
+      const creatures = await this.anchorClient.getAllPlayers();
+      console.log(creatures);
     }
   }
 

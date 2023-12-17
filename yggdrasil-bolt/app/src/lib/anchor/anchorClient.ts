@@ -10,7 +10,7 @@ import {
 } from "@solana/web3.js";
 import BN from "bn.js";
 import { serializeArgs } from "./utils";
-
+import { DISCRIMINATOR_SIZE, PUBKEY_SIZE } from "./defs";
 import {
   createAddEntityInstruction,
   createApplyInstruction,
@@ -23,6 +23,7 @@ import {
   FindWorldRegistryPda,
   World,
 } from "bolt-sdk";
+import { encode as encodeb58 } from "bs58";
 
 import yggdrasilIdl from "./target/idl/yggdrasil_bolt.json";
 import creatureIdl from "./target/idl/creature.json";
@@ -54,6 +55,7 @@ export interface Player {
 
 export interface CreatureData {
   logged_in: boolean;
+  name: string;
   // state
   hp: number;
   maxHp: number;
@@ -227,6 +229,18 @@ export class AnchorClient {
     return null;
   }
 
+  async getAllPlayers() {
+    const creatures = await this.programs.creature.account.creature.all([
+      {
+        memcmp: {
+          offset: DISCRIMINATOR_SIZE + PUBKEY_SIZE,
+          bytes: encodeb58(Buffer.from([1])),
+        },
+      },
+    ]);
+    return creatures;
+  }
+
   async getCreature(entity: PublicKey): Promise<CreatureData> {
     const creature = FindComponentPda(
       this.programs.creature.programId,
@@ -241,7 +255,8 @@ export class AnchorClient {
   async createPlayer(name: string, uri: string): Promise<TransactionResult> {
     // create creature entity
     const [entity, creature] = await this.createCreature(
-      this.anchorWallet.publicKey
+      this.anchorWallet.publicKey,
+      name
     );
 
     const [player, _] = this.getPlayerPda();
@@ -268,7 +283,10 @@ export class AnchorClient {
     return await this.executeTransaction(tx);
   }
 
-  async createCreature(authority: PublicKey): Promise<[PublicKey, PublicKey]> {
+  async createCreature(
+    authority: PublicKey,
+    name: String
+  ): Promise<[PublicKey, PublicKey]> {
     // create entity and creature for player
     const worldId = new BN(WORLD_ID);
     const world = FindWorldPda(worldId);
@@ -319,6 +337,7 @@ export class AnchorClient {
             args: serializeArgs({
               modification: Modification.Initialize,
               authority: authority.toString(),
+              name: name,
             }),
           }
         )

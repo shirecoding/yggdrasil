@@ -192,6 +192,7 @@ describe("yggdrasil-bolt", () => {
     const args = {
       modification: Modification.Initialize,
       authority: provider.wallet.publicKey.toString(),
+      name: "test",
     };
 
     let ix = createApplyInstruction(
@@ -210,6 +211,7 @@ describe("yggdrasil-bolt", () => {
       sourceCreatureComponentPda
     );
 
+    expect(sourceCreateData.name).to.equal("test");
     expect(sourceCreateData.maxHp).to.equal(10);
     expect(sourceCreateData.hp).to.equal(10);
     expect(sourceCreateData.level).to.equal(1);

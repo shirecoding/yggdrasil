@@ -17,6 +17,8 @@ pub struct Creature {
     pub is_initialized: bool,
     // type
     pub category: u8, // 0: player, 1: npc
+    #[max_len(30)]
+    pub name: String,
     // location
     pub x: i16,
     pub y: i16,
